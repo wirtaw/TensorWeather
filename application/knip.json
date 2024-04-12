@@ -1,0 +1,13 @@
+{
+  "rules": {
+    "files": "warn",
+    "classMembers": "warn",
+    "duplicates": "warn"
+  },
+  "src": {
+    "entry": "src/**/*.ts"
+  },
+  "jest": {
+    "entry": ["test/**/*.e2e-spec.ts", "src/**/*.spec.ts"]
+  }
+}

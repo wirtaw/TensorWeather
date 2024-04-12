@@ -10,6 +10,12 @@
 $ npm install
 ```
 
+## Setup
+
+- Copy from `./env/.env.example` to root application folder and rename `./env`
+
+- Change `PORT`,`OPENWEATHER_API_KEY`, and etc. variables to Yours
+
 ## Running the app
 
 ```bash
