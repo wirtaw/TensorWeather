@@ -4,6 +4,8 @@
 
 A web application to visualize historical weather trends and predict future weather patterns using OpenWeather data and TensorFlow.
 
+Created to participate in [The OpenWeather Challenge](https://challenge.openweather.co.uk/#take-part)
+
 ## Features
 
 * Fetches historical weather data from the OpenWeather API.
@@ -13,12 +15,18 @@ A web application to visualize historical weather trends and predict future weat
 
 ## Getting Started
 
+## Requirements
+
+* node v20.10.0 (LTS)
+* npm v10.2.3
+
 * **Prerequisites:**
     * Node.js and npm (or yarn)
     * A valid OpenWeather API key
 
 * **Installation:**
     * Clone the repository
+    * Go to application folder `cd application`
     * Run `npm install` 
 
 ## Usage
