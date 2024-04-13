@@ -16,7 +16,7 @@ import { Socket } from 'socket.io';
   cors: {
     origin: '*',
   },
-  port: 3002
+  port: 3002,
 })
 export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()

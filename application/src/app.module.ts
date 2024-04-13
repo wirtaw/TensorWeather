@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { IoAdapter } from '@nestjs/platform-socket.io';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import appConfig, { getEnvFilePaths } from './config/config';
@@ -17,8 +16,6 @@ import { EventsModule } from './events/events.module';
     EventsModule,
   ],
   controllers: [AppController],
-  providers: [
-    AppService,
-  ],
+  providers: [AppService],
 })
 export class AppModule {}

@@ -12,7 +12,6 @@ import { NextFunction, Request, Response } from 'express';
 import { AppConfig } from './config/app/app.config';
 import { AppModule } from './app.module';
 
-
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
