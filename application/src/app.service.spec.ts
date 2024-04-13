@@ -1,7 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppService } from './app.service';
-import * as fs from 'fs';
-import * as path from 'node:path';
 
 describe('AppService', () => {
   let service: AppService;

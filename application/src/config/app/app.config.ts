@@ -2,6 +2,7 @@ export interface AppConfig {
   version: string;
   env: Environment;
   port: number;
+  socketPort: number;
   logLevels: { [key: string]: number };
   enabledOrigins: string[];
   requestTimeoutSeconds: number;
@@ -63,6 +64,7 @@ export const enabledOrigins = (): AppConfig['enabledOrigins'] => {
 
 export default (): AppConfig => ({
   port: parseInt(process.env.PORT, 10) || 3000,
+  socketPort: parseInt(process.env.SOCKET_PORT, 10) || 3001,
   env: currentEnvironment(),
   version: process.env.VERSION,
   logLevels: logLevels(),

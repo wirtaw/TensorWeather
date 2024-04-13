@@ -16,7 +16,9 @@ describe('AppController', () => {
 
   describe('root', () => {
     it('should return "Hello Stock Tensor Weather World!!"', () => {
-      expect(appController.getHello()).toBe('Hello Stock Tensor Weather World!');
+      expect(appController.getHello()).toBe(
+        'Hello Stock Tensor Weather World!',
+      );
     });
   });
 });

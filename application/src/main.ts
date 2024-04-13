@@ -2,7 +2,7 @@ import { NestApplication, NestFactory } from '@nestjs/core';
 import { HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { ConfigService } from '@nestjs/config';
-import { WsAdapter } from '@nestjs/platform-ws';
+import { SocketIoAdapter } from './adaptors/socket.io.adaptor';
 
 import helmet from 'helmet';
 import * as morgan from 'morgan';
@@ -11,6 +11,7 @@ import { NextFunction, Request, Response } from 'express';
 
 import { AppConfig } from './config/app/app.config';
 import { AppModule } from './app.module';
+
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -24,14 +25,13 @@ async function bootstrap() {
   /**
    * @description Security
    */
+  // app.enableCors();
   app.enableCors({
-    origin: appConfig.enabledOrigins.map(
-      (enabledOrigin) => new RegExp(enabledOrigin),
-    ),
+    origin: appConfig.enabledOrigins[0],
     credentials: true,
-    methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'HEAD', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    optionsSuccessStatus: 200,
+    // methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'HEAD', 'OPTIONS'],
+    // allowedHeaders: ['Content-Type', 'Authorization'],
+    // optionsSuccessStatus: 200,
   });
   app.use(helmet());
 
@@ -65,12 +65,12 @@ async function bootstrap() {
     next();
   });
 
-  /**
-   * @description WebSocket server
-   */
-  app.useWebSocketAdapter(new WsAdapter(app));
-
   if (process.env.NODE_ENV !== 'test') {
+    /**
+     * @description WebSocket server
+     */
+    app.useWebSocketAdapter(new SocketIoAdapter(configService));
+
     await app.listen(appConfig.port, () =>
       Logger.log(`Service run on port: ${appConfig.port}`),
     );
