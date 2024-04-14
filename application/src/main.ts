@@ -13,7 +13,9 @@ import { AppConfig } from './config/app/app.config';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    cors: true,
+  });
 
   /**
    * @description Configuration
@@ -25,12 +27,14 @@ async function bootstrap() {
    * @description Security
    */
   // app.enableCors();
+  Logger.log(`Origins ${JSON.stringify(appConfig.socket.origins)}`);
+  Logger.log(`credentials ${JSON.stringify(appConfig.socket.credentials)}`);
   app.enableCors({
-    origin: appConfig.enabledOrigins[0],
-    credentials: true,
-    // methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'HEAD', 'OPTIONS'],
-    // allowedHeaders: ['Content-Type', 'Authorization'],
-    // optionsSuccessStatus: 200,
+    origin: appConfig.socket.origins,
+    credentials: appConfig.socket.credentials,
+    methods: ['GET', 'POST'],
+    optionsSuccessStatus: 200,
+    //allowedHeaders: ['tensor-weather-header']
   });
   app.use(helmet());
 

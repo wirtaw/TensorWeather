@@ -10,7 +10,7 @@ import { useSocket } from './../helper/useSocket';
 
 export default {
   setup() {
-    const formData = ref({}); // Holds form input data
+    const formData = ref({});
 
     const { emit } = useSocket(); 
 

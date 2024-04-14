@@ -1,7 +1,13 @@
 import { io } from 'socket.io-client';
 
+const port = 3002;
+
 export function useSocket() {
-  const socket = io('http://localhost:3002'); // Replace with your NestJS server URL
+  const socket = io(`http://localhost:${port}`,
+  {
+    withCredentials: true,
+    transports: ["websocket", "polling"],
+  });
 
   const emit = (event, data) => socket.emit(event, data);
   const on = (event, callback) => socket.on(event, callback);

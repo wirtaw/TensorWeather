@@ -2,12 +2,15 @@ export interface AppConfig {
   version: string;
   env: Environment;
   port: number;
-  socketPort: number;
   logLevels: { [key: string]: number };
-  enabledOrigins: string[];
   requestTimeoutSeconds: number;
   responseTimeoutSeconds: number;
   cacheTTL: number;
+  socket: {
+    port: number;
+    origins: string[];
+    credentials: boolean;
+  };
 }
 
 enum Environment {
@@ -54,7 +57,7 @@ export const logLevels = (): AppConfig['logLevels'] => {
   return allowedLevels;
 };
 
-export const enabledOrigins = (): AppConfig['enabledOrigins'] => {
+export const enabledOrigins = (): AppConfig['socket']['origins'] => {
   return (
     (process.env.APP_ENABLED_ORIGINS &&
       process.env.APP_ENABLED_ORIGINS.split(',')) ||
@@ -64,14 +67,20 @@ export const enabledOrigins = (): AppConfig['enabledOrigins'] => {
 
 export default (): AppConfig => ({
   port: parseInt(process.env.PORT, 10) || 3000,
-  socketPort: parseInt(process.env.SOCKET_PORT, 10) || 3001,
+
   env: currentEnvironment(),
   version: process.env.VERSION,
   logLevels: logLevels(),
-  enabledOrigins: enabledOrigins(),
   requestTimeoutSeconds:
     parseInt(process.env.APP_REQUEST_TIMEOUT_SECONDS, 10) || 10000,
   responseTimeoutSeconds:
     parseInt(process.env.APP_RESPONSE_TIMEOUT_SECONDS, 10) || 10000,
   cacheTTL: parseInt(process.env.CACHE_TTL, 10) || 10000,
+  socket: {
+    port: parseInt(process.env.SOCKET_PORT, 10) || 3001,
+    origins: enabledOrigins(),
+    credentials: process.env.SOCKET_CREDENTIALS
+      ? process.env.SOCKET_CREDENTIALS === 'true'
+      : false,
+  },
 });
