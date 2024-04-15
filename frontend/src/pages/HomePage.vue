@@ -1,5 +1,5 @@
 <template>
-    <ForecastForm />
+    <ForecastForm/>
     <ForecastTable />
 </template>
 
