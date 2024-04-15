@@ -5,14 +5,13 @@
 </template>
 
 <script>
-import { ref } from 'vue';
-import { useSocket } from './../helper/useSocket';
+import { ref, inject } from 'vue';
 
 export default {
   setup() {
     const formData = ref({});
 
-    const { emit } = useSocket(); 
+    const emit = inject('socketEmit');
 
     const submitForecastRequest = () => {
       emit('forecast_request', formData.value); 

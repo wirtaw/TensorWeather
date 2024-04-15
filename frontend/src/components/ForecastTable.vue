@@ -10,22 +10,19 @@
   </template>
   
   <script>
-  import { ref, onMounted } from 'vue';
-  import { useSocket } from './../helper/useSocket'; 
+  import { ref, onMounted, inject } from 'vue';
   
   export default {
     setup() {
       const forecastData = ref([]);
-  
-      const { on } = useSocket();
+      const on = inject('socketOn');
   
       on('forecast_response', (data) => {
         forecastData.value = data;
       });
 
       onMounted(() => {
-        const { socket } = useSocket();
-        socket.on('forecast_response', (data) => { 
+        on('forecast_response', (data) => { 
             forecastData.value = data;
         });
       });

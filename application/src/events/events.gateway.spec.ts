@@ -3,6 +3,8 @@ import { EventsGateway } from './events.gateway';
 import { INestApplication } from '@nestjs/common';
 import { Socket, io } from 'socket.io-client';
 
+jest.setTimeout(10000);
+
 async function createNestApp(...gateways: any): Promise<INestApplication> {
   const testingModule = await Test.createTestingModule({
     providers: gateways,
@@ -70,10 +72,13 @@ describe('EventsGateway', () => {
         });
       });
       ioClient.disconnect();
-      ioClient.on('disconnect', () => {
-        console.log('client disconnected');
-        done();
+      await new Promise<void>((resolve) => {
+        ioClient.on('disconnect', () => {
+          console.log('client disconnected');
+          resolve();
+        });
       });
-    }, 15000);
+      done();
+    });
   });
 });

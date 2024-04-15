@@ -1,4 +1,9 @@
-import { createApp } from 'vue'
-import App from './App.vue'
+import { createApp } from 'vue';
+import App from './App.vue';
+import { socket, emit, on } from './socket.service'; 
 
-createApp(App).mount('#app')
+const app = createApp(App);
+app.provide('socket', socket);
+app.provide('socketEmit', emit);
+app.provide('socketOn', on);
+app.mount('#app');
