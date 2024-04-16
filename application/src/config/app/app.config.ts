@@ -11,6 +11,7 @@ export interface AppConfig {
     origins: string[];
     credentials: boolean;
   };
+  openweatherApiKey: string;
 }
 
 enum Environment {
@@ -83,4 +84,5 @@ export default (): AppConfig => ({
       ? process.env.SOCKET_CREDENTIALS === 'true'
       : false,
   },
+  openweatherApiKey: process.env.OPENWEATHER_API_KEY || '',
 });
