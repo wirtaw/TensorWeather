@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { request } from 'undici';
 import { DateTime } from 'luxon';
@@ -8,15 +8,16 @@ import { Coordinates, WeatherData } from './interfaces/openweather.interfaces';
 @Injectable()
 export class OpenweatherService {
   private appConfig: AppConfig;
+  private readonly logger = new Logger(OpenweatherService.name);
 
   constructor(private configService: ConfigService) {
     this.appConfig = this.configService.get<AppConfig>('app');
   }
 
   async getHistoricalData(
-    coordinates: Coordinates,
-    startDate: number,
-    endDate: number,
+    coordinates?: Coordinates,
+    startDate?: number,
+    endDate?: number,
   ): Promise<WeatherData | any> {
     const { openweatherApiKey: appId } = this.appConfig;
     if (!appId) {
@@ -39,10 +40,12 @@ export class OpenweatherService {
     }
 
     const result: WeatherData[] = [];
+    const url: string = `https://api.openweathermap.org/data/3.0/onecall/day_summary?lat=${latitude}&lon=${longitude}&date=${dtStart.toFormat('yyyy-LL-dd')}&appid=${appId}`;
+    this.logger.log(` start getHistoricalData ${url}`);
 
-    const { statusCode, body } = await request(
-      `https://api.openweathermap.org/data/3.0/onecall/day_summary?lat=${latitude}&lon=${longitude}&date=${dtStart.toFormat('yyyy-LL-dd')}&appid=${appId}`,
-    );
+    const { statusCode, body } = await request(url);
+
+    this.logger.log(` statusCode ${statusCode}`);
 
     if (statusCode === 200) {
       for await (const data of body) {

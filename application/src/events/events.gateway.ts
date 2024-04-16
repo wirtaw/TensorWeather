@@ -8,15 +8,19 @@ import {
   OnGatewayInit,
 } from '@nestjs/websockets';
 import { Logger } from '@nestjs/common';
-import { from, Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
 import { Server } from 'socket.io';
+import { OpenweatherService } from '../openweather/openweather.service';
+import { Coordinates, WeatherData } from '../openweather/interfaces/openweather.interfaces';
 
 @WebSocketGateway({})
 export class EventsGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
   private readonly logger = new Logger(EventsGateway.name);
+  private openweatherService: OpenweatherService;
+  constructor(openweatherService: OpenweatherService) {
+    this.openweatherService = openweatherService;
+  }
 
   @WebSocketServer() io: Server;
 
@@ -46,8 +50,12 @@ export class EventsGateway
   }
 
   @SubscribeMessage('forecast_request')
-  handleForecastRequest(client: Server, payload: any): void {
+  async handleForecastRequest(client: Server, payload: any): Promise<void> {
     this.logger.log(`Forecast `, payload);
-    client.emit('done', 'Hello from NestJS!');
+    const { latitude, longitude, startDate, endDate } = payload;
+    const coordinates: Coordinates = { latitude, longitude };
+    const data: WeatherData[] = await this.openweatherService.getHistoricalData(coordinates, startDate, endDate);
+
+    client.emit('done', data);
   }
 }
