@@ -27,12 +27,6 @@ describe('EventsGateway', () => {
     expect(gateway).toBeDefined();
   });
 
-  describe('handleMessage', () => {
-    it('should be handleMessage', () => {
-      expect(gateway.handleMessage()).toStrictEqual([{ id: 1, value: 2 }]);
-    });
-  });
-
   describe('check with client', () => {
     let app: INestApplication;
     let ioClient: Socket;

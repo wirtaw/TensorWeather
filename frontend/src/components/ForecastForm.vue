@@ -54,7 +54,13 @@ export default {
     const emit = inject('socketEmit');
 
     function submitForecast() {
-      emit('forecast_request', formData.value); 
+      const { latitude, longitude, startDate, endDate } = formData.value;
+      emit('forecast_request', {
+        latitude: !Number.isNaN(Number.parseFloat(latitude)) ? Number.parseFloat(latitude) : null,
+        longitude: !Number.isNaN(Number.parseFloat(longitude)) ? Number.parseFloat(longitude) : null,
+        startDate: (new Date(startDate)).getTime(),
+        endDate: (new Date(endDate)).getTime()
+      }); 
     }
 
     return { submitForecast, formData };

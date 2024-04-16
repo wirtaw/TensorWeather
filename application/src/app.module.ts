@@ -5,6 +5,7 @@ import { AppService } from './app.service';
 import appConfig, { getEnvFilePaths } from './config/config';
 import { EventsModule } from './events/events.module';
 import { OpenweatherService } from './openweather/openweather.service';
+import { OpenweatherModule } from './openweather/openweather.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { OpenweatherService } from './openweather/openweather.service';
       cache: true,
     }),
     EventsModule,
+    OpenweatherModule,
   ],
   controllers: [AppController],
   providers: [AppService, OpenweatherService],

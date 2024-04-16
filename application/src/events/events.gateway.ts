@@ -50,16 +50,4 @@ export class EventsGateway
     this.logger.log(`Forecast `, payload);
     client.emit('done', 'Hello from NestJS!');
   }
-
-  @SubscribeMessage('message')
-  handleMessage(): Array<{ id: number; value: number }> {
-    return [{ id: 1, value: 2 }];
-  }
-
-  @SubscribeMessage('events')
-  onEvent(): Observable<WsResponse<number>> {
-    return from([1, 2, 3]).pipe(
-      map((item) => ({ event: 'events', data: item })),
-    );
-  }
 }
