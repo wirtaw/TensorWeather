@@ -1,7 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { ConfigService } from '@nestjs/config';
 import { EventsGateway } from './events.gateway';
 import { INestApplication } from '@nestjs/common';
 import { Socket, io } from 'socket.io-client';
+import { OpenweatherService } from '../openweather/openweather.service';
 
 jest.setTimeout(10000);
 
@@ -17,7 +19,7 @@ describe('EventsGateway', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [EventsGateway],
+      providers: [EventsGateway, ConfigService, OpenweatherService],
     }).compile();
 
     gateway = module.get<EventsGateway>(EventsGateway);
@@ -33,7 +35,7 @@ describe('EventsGateway', () => {
 
     beforeAll(async () => {
       // Instantiate the app
-      app = await createNestApp(EventsGateway);
+      app = await createNestApp(EventsGateway, ConfigService, OpenweatherService);
       // Get the gateway instance from the app instance
       gateway = app.get<EventsGateway>(EventsGateway);
       // Create a new client that will interact with the gateway

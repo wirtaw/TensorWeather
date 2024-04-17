@@ -8,7 +8,7 @@ describe('OpenweatherService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [OpenweatherService],
+      providers: [OpenweatherService, ConfigService],
     }).compile();
 
     service = module.get<OpenweatherService>(OpenweatherService);

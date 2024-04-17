@@ -49,7 +49,7 @@ export class OpenweatherService {
 
     if (statusCode === 200) {
       for await (const data of body) {
-        console.log('data', data);
+        this.logger.log('data', data);
         result.push(data);
       }
       return result;
