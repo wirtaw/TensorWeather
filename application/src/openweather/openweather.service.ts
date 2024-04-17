@@ -40,7 +40,7 @@ export class OpenweatherService {
     }
 
     const result: WeatherData[] = [];
-    const url: string = `https://api.openweathermap.org/data/3.0/onecall/day_summary?lat=${latitude}&lon=${longitude}&date=${dtStart.toFormat('yyyy-LL-dd')}&appid=${appId}`;
+    const url: string = `https://api.openweathermap.org/data/3.0/onecall/day_summary?lat=${latitude}&lon=${longitude}&date=${dtStart.toFormat('yyyy-LL-dd')}&appid=${appId}&units=metric`;
     this.logger.log(` start getHistoricalData ${url}`);
 
     const { statusCode, body } = await request(url);

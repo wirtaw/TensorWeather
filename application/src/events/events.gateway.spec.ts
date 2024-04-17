@@ -35,7 +35,11 @@ describe('EventsGateway', () => {
 
     beforeAll(async () => {
       // Instantiate the app
-      app = await createNestApp(EventsGateway, ConfigService, OpenweatherService);
+      app = await createNestApp(
+        EventsGateway,
+        ConfigService,
+        OpenweatherService,
+      );
       // Get the gateway instance from the app instance
       gateway = app.get<EventsGateway>(EventsGateway);
       // Create a new client that will interact with the gateway
