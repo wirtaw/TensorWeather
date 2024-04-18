@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { request } from 'undici';
@@ -41,18 +42,20 @@ export class OpenweatherService {
 
     const result: WeatherData[] = [];
     const url: string = `https://api.openweathermap.org/data/3.0/onecall/day_summary?lat=${latitude}&lon=${longitude}&date=${dtStart.toFormat('yyyy-LL-dd')}&appid=${appId}&units=metric`;
-    this.logger.log(` start getHistoricalData ${url}`);
+    // this.logger.log(` start getHistoricalData ${url}`);
 
     const { statusCode, body } = await request(url);
 
-    this.logger.log(` statusCode ${statusCode}`);
+    // this.logger.log(` statusCode ${statusCode}`);
 
     if (statusCode === 200) {
       for await (const data of body) {
-        this.logger.log('data', data);
-        result.push(data);
+        // this.logger.log('data', data);
+        result.push({id: randomUUID(), ...JSON.parse(data)});
       }
       return result;
+    } else {
+        throw new Error(`Internal error from Openweather service ${statusCode}`);
     }
 
     return null;

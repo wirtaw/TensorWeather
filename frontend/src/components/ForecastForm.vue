@@ -37,6 +37,9 @@
       <v-btn color="primary" @click="submitForecast">Generate Forecast</v-btn> 
     </v-form>
   </v-container>
+  <div v-if="forecastResult">
+    <h2>Forecast Result</h2>
+    <p>{{ forecastResult }}</p> </div>
 </template>
 
 <script>
@@ -50,8 +53,10 @@ export default {
       startDate: null,
       endDate: null,
     });
+    const forecastResult = ref(null);
 
     const emit = inject('socketEmit');
+    const on = inject('socketOn');
 
     function submitForecast() {
       const { latitude, longitude, startDate, endDate } = formData.value;
@@ -63,7 +68,11 @@ export default {
       }); 
     }
 
-    return { submitForecast, formData };
+    on('forecast_request_done', (data) => {
+      forecastResult.value = data;
+    });
+
+    return { submitForecast, formData, forecastResult };
   }
 };
 </script>

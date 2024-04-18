@@ -4,7 +4,7 @@
         </thead>
       <tbody>
         <tr v-for="item in forecastData" :key="item.id"> 
-          </tr>
+        </tr>
       </tbody>
     </table>
   </template>

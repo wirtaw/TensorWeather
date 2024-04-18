@@ -43,8 +43,8 @@ export class EventsGateway
 
   @SubscribeMessage('ping')
   handlePing(client: any, data: any) {
-    this.logger.log(`Message received from client id: ${client.id}`);
-    this.logger.debug(`Payload: ${data}`);
+    // this.logger.log(`Message received from client id: ${client.id}`);
+    // this.logger.debug(`Payload: ${data}`);
     return {
       event: 'pong',
       data: 'Hello world!',
@@ -53,7 +53,7 @@ export class EventsGateway
 
   @SubscribeMessage('forecast_request')
   async handleForecastRequest(client: Server, payload: any): Promise<void> {
-    this.logger.log(`Forecast `, payload);
+    // this.logger.log(`Forecast `, payload);
     const { latitude, longitude, startDate, endDate } = payload;
     const coordinates: Coordinates = { latitude, longitude };
     const data: WeatherData[] = await this.openweatherService.getHistoricalData(
@@ -62,6 +62,6 @@ export class EventsGateway
       endDate,
     );
 
-    client.emit('done', data);
+    client.emit('forecast_request_done', data);
   }
 }
