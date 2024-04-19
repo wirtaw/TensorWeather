@@ -149,5 +149,9 @@ dist
 .pnp.*
 
 # LevelUp
-./application/forecast-data/*
-./application/forecast-data
+application/forecast-data/*
+application/forecast-data
+application/forecast-data/LOCK
+application/forecast-data/LOG
+application/forecast-data/LOG.old
+application/forecast-data/MANIFEST-000014

@@ -27,8 +27,8 @@ async function bootstrap() {
    * @description Security
    */
   // app.enableCors();
-  Logger.log(`Origins ${JSON.stringify(appConfig.socket.origins)}`);
-  Logger.log(`credentials ${JSON.stringify(appConfig.socket.credentials)}`);
+  // Logger.log(`Origins ${JSON.stringify(appConfig.socket.origins)}`);
+  // Logger.log(`credentials ${JSON.stringify(appConfig.socket.credentials)}`);
   app.enableCors({
     origin: appConfig.socket.origins,
     credentials: appConfig.socket.credentials,

@@ -22,7 +22,9 @@ export class LevelDbService {
   async put(key: string, value: any): Promise<void> {
     try {
       await this.db.put(key, JSON.stringify(value));
-      await this.db.close(this.close());
+      /*await this.db.close(() => {
+        this.logger.log(`Db is closed`);
+      });*/
     } catch (error) {
       console.error('Error storing data:', error);
       throw error; // Re-throw to propagate the error
@@ -32,36 +34,18 @@ export class LevelDbService {
   async get(key: string): Promise<any> {
     try {
       const data = await this.db.get(key);
-      await this.db.close();
+      /*await this.db.close(() => {
+        this.logger.log(`Db is closed`);
+      });*/
       return JSON.parse(data);
     } catch (error) {
       console.error('Error retrieving data:', error);
+      if (error?.message.includes('Key not found in database')) {
+        return null;
+      }
       // Consider how to handle missing keys (e.g., return null)
       throw error;
     }
-  }
-
-  async getForecastResult(key: string): Promise<any> {
-    const existingData = await this.get(key);
-    await this.db.close();
-
-    if (existingData) {
-      return existingData; // Return from LevelDB
-    } else {
-      // Need to fetch/generate a new forecast (replace placeholder)
-      const newForecastResult = await this.generateForecast();
-      await this.put(key, newForecastResult);
-      await this.db.close();
-      return newForecastResult;
-    }
-  }
-
-  // placeholder - replace with actual forecast generation logic
-  private async generateForecast() {
-    // ... your logic to fetch or calculate a forecast result
-    return {
-      /* ... forecast result */
-    };
   }
 
   close() {
