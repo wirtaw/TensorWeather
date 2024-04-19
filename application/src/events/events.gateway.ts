@@ -19,10 +19,8 @@ export class EventsGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
   private readonly logger = new Logger(EventsGateway.name);
-  private openweatherService: OpenweatherService;
-  constructor(openweatherService: OpenweatherService) {
-    this.openweatherService = openweatherService;
-  }
+
+  constructor(private readonly openweatherService: OpenweatherService) {}
 
   @WebSocketServer() io: Server;
 
@@ -43,8 +41,8 @@ export class EventsGateway
 
   @SubscribeMessage('ping')
   handlePing(client: any, data: any) {
-    // this.logger.log(`Message received from client id: ${client.id}`);
-    // this.logger.debug(`Payload: ${data}`);
+    this.logger.log(`Message received from client id: ${client.id}`);
+    this.logger.debug(`Payload: ${data}`);
     return {
       event: 'pong',
       data: 'Hello world!',

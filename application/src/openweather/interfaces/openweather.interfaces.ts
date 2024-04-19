@@ -4,7 +4,7 @@ export interface Coordinates {
 }
 
 export interface WeatherData {
-  id: string;  
+  id: string;
   lat: number;
   lon: number;
   tz: string;

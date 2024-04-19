@@ -12,6 +12,9 @@ export interface AppConfig {
     credentials: boolean;
   };
   openweatherApiKey: string;
+  db: {
+    path: string;
+  };
 }
 
 enum Environment {
@@ -85,4 +88,7 @@ export default (): AppConfig => ({
       : false,
   },
   openweatherApiKey: process.env.OPENWEATHER_API_KEY || '',
+  db: {
+    path: process.env.LEVELDB_PATH || '',
+  },
 });

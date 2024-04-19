@@ -4,9 +4,8 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import appConfig, { getEnvFilePaths } from './config/config';
 import { EventsModule } from './events/events.module';
-import { OpenweatherService } from './openweather/openweather.service';
 import { OpenweatherModule } from './openweather/openweather.module';
-import { LevelDbserviceService } from './level-dbservice/level-dbservice.service';
+import { LevelDbModule } from './level-dbservice/level-dbservice.module';
 
 @Module({
   imports: [
@@ -16,10 +15,11 @@ import { LevelDbserviceService } from './level-dbservice/level-dbservice.service
       envFilePath: getEnvFilePaths(),
       cache: true,
     }),
+    LevelDbModule,
     EventsModule,
     OpenweatherModule,
   ],
   controllers: [AppController],
-  providers: [AppService, OpenweatherService, LevelDbserviceService],
+  providers: [AppService],
 })
 export class AppModule {}

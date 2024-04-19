@@ -5,13 +5,17 @@ import { request } from 'undici';
 import { DateTime } from 'luxon';
 import { AppConfig } from '../config/app/app.config';
 import { Coordinates, WeatherData } from './interfaces/openweather.interfaces';
+import { LevelDbService } from '../level-dbservice/level-dbservice.service';
 
 @Injectable()
 export class OpenweatherService {
   private appConfig: AppConfig;
   private readonly logger = new Logger(OpenweatherService.name);
 
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    private readonly levelDBService: LevelDbService,
+  ) {
     this.appConfig = this.configService.get<AppConfig>('app');
   }
 
@@ -41,6 +45,14 @@ export class OpenweatherService {
     }
 
     const result: WeatherData[] = [];
+    const key: string = `day-summary-${latitude}-${longitude}-${startDate}`;
+    const cachedData: WeatherData | undefined =
+      await this.levelDBService.get(key);
+    if (cachedData) {
+      result.push(cachedData);
+      this.logger.log(`return from cache ${key}`);
+      return result;
+    }
     const url: string = `https://api.openweathermap.org/data/3.0/onecall/day_summary?lat=${latitude}&lon=${longitude}&date=${dtStart.toFormat('yyyy-LL-dd')}&appid=${appId}&units=metric`;
     // this.logger.log(` start getHistoricalData ${url}`);
 
@@ -51,11 +63,15 @@ export class OpenweatherService {
     if (statusCode === 200) {
       for await (const data of body) {
         // this.logger.log('data', data);
-        result.push({id: randomUUID(), ...JSON.parse(data)});
+        result.push({ id: randomUUID(), ...JSON.parse(data) });
+        await this.levelDBService.put(key, {
+          id: randomUUID(),
+          ...JSON.parse(data),
+        });
       }
       return result;
     } else {
-        throw new Error(`Internal error from Openweather service ${statusCode}`);
+      throw new Error(`Internal error from Openweather service ${statusCode}`);
     }
 
     return null;
