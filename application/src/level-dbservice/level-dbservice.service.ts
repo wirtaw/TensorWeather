@@ -1,8 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { DateTime } from 'luxon';
 import * as levelup from 'levelup';
 import * as leveldown from 'leveldown';
-import { AppConfig } from '../config/app/app.config';
 import { ConfigService } from '@nestjs/config';
+import { AppConfig } from '../config/app/app.config';
+import { WeatherData } from '../openweather/interfaces/openweather.interfaces';
 
 @Injectable()
 export class LevelDbService {
@@ -46,6 +48,42 @@ export class LevelDbService {
       // Consider how to handle missing keys (e.g., return null)
       throw error;
     }
+  }
+
+  async getDataByRange({ startDate, endDate, lat, lon }): Promise<any> {
+    if (!lat || !lon) {
+      throw new Error('Invalid coordinates');
+    }
+
+    const dtStart = DateTime.fromMillis(startDate);
+    if (!startDate || !dtStart.isValid) {
+      throw new Error(`Invalid start date. ${dtStart.invalidExplanation}`);
+    }
+
+    const dtEnd = DateTime.fromMillis(endDate);
+    if (!endDate || !dtEnd.isValid) {
+      throw new Error(`Invalid end date. ${dtEnd.invalidExplanation}`);
+    }
+
+    const diff =
+      startDate < endDate
+        ? dtEnd.diff(dtStart, 'days').toObject()
+        : dtStart.diff(dtEnd, 'days').toObject();
+
+    const result: WeatherData[] = [];
+    for (let i = 0; i < diff.days; i++) {
+      const dt =
+        startDate < endDate
+          ? dtStart.plus({ days: i })
+          : dtEnd.plus({ days: i });
+      const key: string = `day-summary-${lat}-${lon}-${dt.toMillis()}`;
+      const data: WeatherData | undefined = await this.get(key);
+      if (data) {
+        result.push(data);
+      }
+    }
+
+    return result;
   }
 
   close() {
