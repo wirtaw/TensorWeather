@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { OpenweatherService } from './openweather.service';
-import { LevelDbService } from 'src/level-dbservice/level-dbservice.service';
+import { LevelDbService } from '../level-dbservice/level-dbservice.service';
 
 describe('OpenweatherService', () => {
   let service: OpenweatherService;
