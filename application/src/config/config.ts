@@ -1,7 +1,9 @@
 import appConfig, { AppConfig, currentEnvironment } from './app/app.config';
+import dbConfig, { DbConfig } from './database/database.config';
 
 export interface Config {
   app: AppConfig;
+  db: DbConfig;
 }
 
 export const getEnvFilePaths = () => {
@@ -16,4 +18,5 @@ export const getEnvFilePaths = () => {
 
 export default (): Config => ({
   app: appConfig(),
+  db: dbConfig(),
 });

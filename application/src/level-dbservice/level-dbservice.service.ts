@@ -3,18 +3,18 @@ import { DateTime } from 'luxon';
 import * as levelup from 'levelup';
 import * as leveldown from 'leveldown';
 import { ConfigService } from '@nestjs/config';
-import { AppConfig } from '../config/app/app.config';
 import { WeatherData } from '../openweather/interfaces/openweather.interfaces';
+import { DbConfig } from 'src/config/database/database.config';
 
 @Injectable()
 export class LevelDbService {
-  private appConfig: AppConfig;
+  private readonly dbConfig: DbConfig;
   private readonly logger = new Logger(LevelDbService.name);
   private db = null;
 
-  constructor(private configService: ConfigService) {
-    this.appConfig = this.configService.get<AppConfig>('app');
-    this.db = levelup(leveldown(this.appConfig.db.path));
+  constructor(configService: ConfigService) {
+    this.dbConfig = configService.get<DbConfig>('db');
+    this.db = levelup(leveldown(this.dbConfig.path));
 
     if (!this.db.supports.permanence) {
       throw new Error('Persistent storage is required');
