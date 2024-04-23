@@ -32,7 +32,7 @@ describe('DataProcessingService', () => {
     let options: ProcessingOptions;
     beforeEach(() => {
       size = faker.number.float({ min: 1, max: 10 });
-      weatherData = Array.from({ length: size } , () => ({
+      weatherData = Array.from({ length: size }, () => ({
         id: faker.string.uuid(),
         lat: faker.number.int({ min: -180, max: 180 }),
         lon: faker.number.int({ min: -180, max: 180 }),
@@ -40,16 +40,16 @@ describe('DataProcessingService', () => {
         date: faker.date.past().toISOString(),
         units: faker.helpers.arrayElement(['metric', 'any']),
         cloud_cover: {
-          afternoon: faker.number.float({ min: 0, max: 100 })
+          afternoon: faker.number.float({ min: 0, max: 100 }),
         },
         humidity: {
-          afternoon: faker.number.float({ min: 20, max: 80 })
+          afternoon: faker.number.float({ min: 20, max: 80 }),
         },
         precipitation: {
-          total: faker.number.float({ min: 20, max: 80 })
+          total: faker.number.float({ min: 20, max: 80 }),
         },
         pressure: {
-          afternoon: faker.number.float({ min: 100, max: 1500 })
+          afternoon: faker.number.float({ min: 100, max: 1500 }),
         },
         temperature: {
           min: faker.number.float({ min: -20, max: 80 }),
@@ -63,8 +63,8 @@ describe('DataProcessingService', () => {
           max: {
             speed: faker.number.float({ min: 0, max: 15 }),
             direction: faker.number.float({ min: -180, max: 180 }),
-          }
-        }
+          },
+        },
       }));
       options = {
         startDate: faker.date.past(),
@@ -75,7 +75,9 @@ describe('DataProcessingService', () => {
     });
 
     it('should cleanAndProcess existing weatherData', async () => {
-      jest.spyOn(levelDbService, 'getDataByRange').mockResolvedValueOnce(weatherData);
+      jest
+        .spyOn(levelDbService, 'getDataByRange')
+        .mockResolvedValueOnce(weatherData);
 
       const res = await service.cleanAndProcess(options);
 
