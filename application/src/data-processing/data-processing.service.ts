@@ -1,16 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import * as R from 'ramda';
 import { LevelDbService } from '../level-dbservice/level-dbservice.service';
-
-interface ProcessingOptions {
-  startDate: Date;
-  endDate: Date;
-  lat: number;
-  lon: number;
-  interval?: 'daily' | 'monthly';
-  monthlyDays?: number[];
-  months?: number[]; // Array of month numbers (1-based, so 1 = January)
-}
+import { ProcessingOptions } from './interfaces/data-processing.interfaces';
 
 @Injectable()
 export class DataProcessingService {
