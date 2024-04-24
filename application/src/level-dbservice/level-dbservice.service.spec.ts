@@ -1,17 +1,31 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigService } from '@nestjs/config';
+import { INestApplication } from '@nestjs/common';
 import { LevelDbService } from './level-dbservice.service';
 
+async function createNestApp(...gateways: any): Promise<INestApplication> {
+  const testingModule = await Test.createTestingModule({
+    providers: gateways,
+  }).compile();
+  return testingModule.createNestApplication();
+}
+
 describe('LevelDbserviceService', () => {
+  let app: INestApplication;
   let service: LevelDbService;
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      imports: [ConfigModule],
-      providers: [LevelDbService],
-    }).compile();
+  beforeAll(async () => {
+    app = await createNestApp(
+      ConfigService,
+      LevelDbService,
+    );
+    service = app.get<LevelDbService>(LevelDbService);
 
-    service = module.get<LevelDbService>(LevelDbService);
+    app.listen(3000);
+  });
+
+  afterAll(async () => {
+    await app.close();
   });
 
   it('should be defined', () => {

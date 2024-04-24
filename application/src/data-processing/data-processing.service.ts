@@ -16,7 +16,7 @@ export class DataProcessingService {
     });
 
     const processedData = R.pipe(
-      R.map(R.pick(['temperature', 'humidity', 'pressure', 'wind'])),
+      R.map(R.pick(['temperature.min', 'temperature.max', 'humidity.afternoon', 'pressure.afternoon', 'wind.max.speed'])),
     )(rawData);
 
     return processedData;

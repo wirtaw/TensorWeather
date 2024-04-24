@@ -14,6 +14,8 @@ export class LevelDbService {
 
   constructor(configService: ConfigService) {
     this.dbConfig = configService.get<DbConfig>('db');
+    debugger;
+    console.dir(this.dbConfig, { depth: 2});
     this.db = levelup(leveldown(this.dbConfig.path));
 
     if (!this.db.supports.permanence) {

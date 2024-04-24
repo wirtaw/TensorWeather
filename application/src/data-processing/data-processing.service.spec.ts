@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { faker } from '@faker-js/faker';
+import { ConfigService } from '@nestjs/config';
 import { DataProcessingService } from './data-processing.service';
 import { LevelDbService } from '../level-dbservice/level-dbservice.service';
 import { WeatherData } from '../openweather/interfaces/openweather.interfaces';
@@ -11,7 +12,7 @@ describe('DataProcessingService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [DataProcessingService, LevelDbService],
+      providers: [LevelDbService, ConfigService, DataProcessingService],
     }).compile();
 
     service = module.get<DataProcessingService>(DataProcessingService);
