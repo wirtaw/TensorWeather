@@ -1,4 +1,4 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { INestApplication } from '@nestjs/common';
 import { LevelDbService } from './level-dbservice.service';
@@ -15,10 +15,7 @@ describe('LevelDbserviceService', () => {
   let service: LevelDbService;
 
   beforeAll(async () => {
-    app = await createNestApp(
-      ConfigService,
-      LevelDbService,
-    );
+    app = await createNestApp(ConfigService, LevelDbService);
     service = app.get<LevelDbService>(LevelDbService);
 
     app.listen(3000);

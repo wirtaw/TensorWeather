@@ -82,4 +82,44 @@ export class OpenweatherService {
     }
     return result;
   }
+
+  async deleteHistoricalData(
+    coordinates?: Coordinates,
+    startDate?: number,
+    endDate?: number,
+  ): Promise<boolean | any> {
+    const { latitude, longitude } = coordinates;
+    if (!coordinates || !latitude || !longitude) {
+      throw new Error('Invalid coordinates');
+    }
+
+    const dtStart = DateTime.fromMillis(startDate);
+    if (!startDate || !dtStart.isValid) {
+      throw new Error(`Invalid start date. ${dtStart.invalidExplanation}`);
+    }
+
+    const dtEnd = DateTime.fromMillis(endDate);
+    if (!endDate || !dtEnd.isValid) {
+      throw new Error(`Invalid end date. ${dtEnd.invalidExplanation}`);
+    }
+
+    const diff =
+      startDate < endDate
+        ? dtEnd.diff(dtStart, 'days').toObject()
+        : dtStart.diff(dtEnd, 'days').toObject();
+
+    for (let i = 0; i < diff.days; i++) {
+        const dt =
+            startDate < endDate
+            ? dtStart.plus({ days: i })
+            : dtEnd.plus({ days: i });
+        const key: string = `day-summary-${latitude}-${longitude}-${dt.toMillis()}`;
+        const cachedData: WeatherData | undefined =
+            await this.levelDBService.get(key);
+        if (cachedData) {
+            this.logger.log(`del ${key}`);
+            await this.levelDBService.del(key);
+        }
+    }
+  }
 }

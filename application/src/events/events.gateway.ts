@@ -62,4 +62,18 @@ export class EventsGateway
 
     client.emit('forecast_request_done', data);
   }
+
+  @SubscribeMessage('forecast_remove_request')
+  async handleForecastRemoveRequest(client: Server, payload: any): Promise<void> {
+    // this.logger.log(`Forecast `, payload);
+    const { latitude, longitude, startDate, endDate } = payload;
+    const coordinates: Coordinates = { latitude, longitude };
+    const reponse: boolean = await this.openweatherService.deleteHistoricalData(
+      coordinates,
+      startDate,
+      endDate,
+    );
+
+    client.emit('forecast_request_remove_done', reponse);
+  }
 }

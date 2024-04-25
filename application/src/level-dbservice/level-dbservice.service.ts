@@ -15,7 +15,7 @@ export class LevelDbService {
   constructor(configService: ConfigService) {
     this.dbConfig = configService.get<DbConfig>('db');
     debugger;
-    console.dir(this.dbConfig, { depth: 2});
+    console.dir(this.dbConfig, { depth: 2 });
     this.db = levelup(leveldown(this.dbConfig.path));
 
     if (!this.db.supports.permanence) {
@@ -26,9 +26,6 @@ export class LevelDbService {
   async put(key: string, value: any): Promise<void> {
     try {
       await this.db.put(key, JSON.stringify(value));
-      /*await this.db.close(() => {
-        this.logger.log(`Db is closed`);
-      });*/
     } catch (error) {
       console.error('Error storing data:', error);
       throw error; // Re-throw to propagate the error
@@ -38,9 +35,6 @@ export class LevelDbService {
   async get(key: string): Promise<any> {
     try {
       const data = await this.db.get(key);
-      /*await this.db.close(() => {
-        this.logger.log(`Db is closed`);
-      });*/
       return JSON.parse(data);
     } catch (error) {
       console.error('Error retrieving data:', error);
@@ -48,6 +42,19 @@ export class LevelDbService {
         return null;
       }
       // Consider how to handle missing keys (e.g., return null)
+      throw error;
+    }
+  }
+
+  async del(key: string): Promise<boolean> {
+    try {
+      await this.db.del(key);
+      return true;
+    } catch (error) {
+      console.error('Error retrieving data:', error);
+      if (error?.message.includes('Key not found in database')) {
+        return false;
+      }
       throw error;
     }
   }
