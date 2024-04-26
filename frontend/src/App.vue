@@ -1,15 +1,16 @@
 <template>
   <img alt="Vue logo" src="./assets/logo.png">
-  <HomePage/>
+  <NavigationMenu/>
+  <router-view />
 </template>
 
 <script>
-import HomePage from './pages/HomePage.vue'
+import NavigationMenu from './components/NavigationMenu.vue'
 
 export default {
   name: 'App',
   components: {
-    HomePage
+    NavigationMenu
   }
 }
 </script>
