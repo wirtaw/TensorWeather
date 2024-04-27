@@ -35,8 +35,9 @@
             ></v-date-picker>
           </v-col>
         </v-row>
-
-        <v-btn color="primary" @click="submitForecast">Generate Forecast</v-btn> 
+        <v-row class="flex-direction is-align-self-center">
+          <v-btn color="primary" @click="submitForecast">Generate Forecast</v-btn> 
+        </v-row>
       </v-form>
     </v-container>
   </div>
@@ -44,12 +45,16 @@
 
 <script>
 import { inject, ref } from 'vue';
+import { mapState, useStore } from 'vuex';
 
 export default {
   setup() {
+    const store = useStore(); 
+    const locationSettings = store.state.locationSettings;
+
     const formData = ref({ 
-      latitude: '',
-      longitude: '',
+      latitude: locationSettings.latitude || '',
+      longitude: locationSettings.longitude || '',
       startDate: null,
       endDate: null,
     });
@@ -68,6 +73,9 @@ export default {
     }
 
     return { submitForecast, formData, forecastResult };
-  }
+  },
+  computed: {
+    ...mapState(['locationSettings']), 
+  },
 };
 </script>

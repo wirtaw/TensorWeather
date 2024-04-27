@@ -1,7 +1,9 @@
 <template>
-    <ForecastForm/>
-    <ForecastTable />
-    <ForecastRemoveForm/>
+    <div>
+      <ForecastForm/>
+      <ForecastTable />
+      <ForecastRemoveForm/>
+    </div>
 </template>
 
 <script>

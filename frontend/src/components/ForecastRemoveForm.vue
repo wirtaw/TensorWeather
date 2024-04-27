@@ -45,15 +45,19 @@
   
   <script>
   import { inject, ref } from 'vue';
+  import { mapState, useStore } from 'vuex';
   
   export default {
     setup() {
-      const formData = ref({ 
-        latitude: '',
-        longitude: '',
-        startDate: null,
-        endDate: null,
-      });
+        const store = useStore(); 
+        const locationSettings = store.state.locationSettings;
+
+        const formData = ref({ 
+            latitude: locationSettings.latitude || '',
+            longitude: locationSettings.longitude || '',
+            startDate: null,
+            endDate: null,
+        });
   
       const emit = inject('socketEmit');
   
@@ -68,6 +72,9 @@
       }
   
       return { submitRemoveForecast, formData };
-    }
+    },
+    computed: {
+        ...mapState(['locationSettings']), 
+    },
   };
   </script>
