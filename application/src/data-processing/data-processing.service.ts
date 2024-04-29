@@ -58,14 +58,16 @@ export class DataProcessingService {
 
     this.logger.log(` rawData ${rawData.length}`);
 
-    const remap = R.curry((desc, obj) => R.map(path => R.view(R.lensPath(path), obj), desc));
+    const remap = R.curry((desc, obj) =>
+      R.map((path) => R.view(R.lensPath(path), obj), desc),
+    );
 
     const checkTemperature = R.pipe(
       R.prop('temperature'),
       R.where({
-         max: R.is(Number),
-         min: R.is(Number)
-      })
+        max: R.is(Number),
+        min: R.is(Number),
+      }),
     );
 
     const filterByTemperature = R.filter(checkTemperature);
@@ -73,8 +75,8 @@ export class DataProcessingService {
     const checkHumidity = R.pipe(
       R.prop('humidity'),
       R.where({
-        afternoon: R.is(Number)
-      })
+        afternoon: R.is(Number),
+      }),
     );
 
     const filterByHumidity = R.filter(checkHumidity);
@@ -82,8 +84,8 @@ export class DataProcessingService {
     const checkPressure = R.pipe(
       R.prop('pressure'),
       R.where({
-        afternoon: R.is(Number)
-      })
+        afternoon: R.is(Number),
+      }),
     );
 
     const filterByPressure = R.filter(checkPressure);
@@ -91,8 +93,8 @@ export class DataProcessingService {
     const checkPrecipitation = R.pipe(
       R.prop('precipitation'),
       R.where({
-        total: R.is(Number)
-      })
+        total: R.is(Number),
+      }),
     );
 
     const filterByPrecipitation = R.filter(checkPrecipitation);
@@ -105,16 +107,17 @@ export class DataProcessingService {
       precipitation: ['precipitation', 'total'],
       wind: ['wind', 'max', 'speed'],
       date: ['date'],
-      id: ['id']
+      id: ['id'],
     });
 
-    const processedData = R.map(myExtract, R.pipe(
-      filterByTemperature, 
-      filterByHumidity,
-      filterByPressure,
-      filterByPrecipitation
-    )
-      (rawData)
+    const processedData = R.map(
+      myExtract,
+      R.pipe(
+        filterByTemperature,
+        filterByHumidity,
+        filterByPressure,
+        filterByPrecipitation,
+      )(rawData),
     );
 
     return processedData;
