@@ -15,6 +15,7 @@ export interface AppConfig {
   db: {
     path: string;
   };
+  timeZone: string;
 }
 
 enum Environment {
@@ -91,4 +92,5 @@ export default (): AppConfig => ({
   db: {
     path: process.env.LEVELDB_PATH || '',
   },
+  timeZone: process.env.TIME_ZONE || 'Europe/London',
 });

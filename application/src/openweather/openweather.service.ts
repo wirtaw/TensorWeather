@@ -2,7 +2,7 @@ import { randomUUID } from 'crypto';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { request } from 'undici';
-import { DateTime } from 'luxon';
+import { DateTime, Settings } from 'luxon';
 import { AppConfig } from '../config/app/app.config';
 import { Coordinates, WeatherData } from './interfaces/openweather.interfaces';
 import { LevelDbService } from '../level-dbservice/level-dbservice.service';
@@ -17,6 +17,7 @@ export class OpenweatherService {
     private readonly levelDBService: LevelDbService,
   ) {
     this.appConfig = this.configService.get<AppConfig>('app');
+    Settings.defaultZone = this.appConfig.timeZone;
   }
 
   async getInRangeByCoordinatesData({
@@ -83,12 +84,16 @@ export class OpenweatherService {
       throw new Error('Invalid coordinates');
     }
 
-    const dtStart = DateTime.fromMillis(startDate);
+    const dtStart = DateTime.fromMillis(startDate, {
+        zone: this.appConfig.timeZone
+      });
     if (!startDate || !dtStart.isValid) {
       throw new Error(`Invalid start date. ${dtStart.invalidExplanation}`);
     }
 
-    const dtEnd = DateTime.fromMillis(endDate);
+    const dtEnd = DateTime.fromMillis(endDate, {
+        zone: this.appConfig.timeZone
+      });
     if (!endDate || !dtEnd.isValid) {
       throw new Error(`Invalid end date. ${dtEnd.invalidExplanation}`);
     }
@@ -121,12 +126,16 @@ export class OpenweatherService {
       throw new Error('Invalid coordinates');
     }
 
-    const dtStart = DateTime.fromMillis(startDate);
+    const dtStart = DateTime.fromMillis(startDate, {
+        zone: this.appConfig.timeZone
+      });
     if (!startDate || !dtStart.isValid) {
       throw new Error(`Invalid start date. ${dtStart.invalidExplanation}`);
     }
 
-    const dtEnd = DateTime.fromMillis(endDate);
+    const dtEnd = DateTime.fromMillis(endDate, {
+        zone: this.appConfig.timeZone
+      });
     if (!endDate || !dtEnd.isValid) {
       throw new Error(`Invalid end date. ${dtEnd.invalidExplanation}`);
     }
@@ -156,7 +165,7 @@ export class OpenweatherService {
     startDate?: number,
     endDate?: number,
   ): Promise<WeatherData | any> {
-    const { openweatherApiKey: appId } = this.appConfig;
+    const { openweatherApiKey: appId, timeZone } = this.appConfig;
     if (!appId) {
       throw new Error('Missing Openweather API Key in the .env');
     }
@@ -166,12 +175,19 @@ export class OpenweatherService {
       throw new Error('Invalid coordinates');
     }
 
-    const dtStart = DateTime.fromMillis(startDate);
+
+    this.logger.log(` zoneName ${ DateTime.local().zoneName }`);
+
+    const dtStart = DateTime.fromMillis(startDate, {
+        zone: this.appConfig.timeZone
+      });
     if (!startDate || !dtStart.isValid) {
       throw new Error(`Invalid start date. ${dtStart.invalidExplanation}`);
     }
 
-    const dtEnd = DateTime.fromMillis(endDate);
+    const dtEnd = DateTime.fromMillis(endDate, {
+        zone: this.appConfig.timeZone
+      });
     if (!endDate || !dtEnd.isValid) {
       throw new Error(`Invalid end date. ${dtEnd.invalidExplanation}`);
     }
@@ -181,11 +197,12 @@ export class OpenweatherService {
         ? dtEnd.diff(dtStart, 'days').toObject()
         : dtStart.diff(dtEnd, 'days').toObject();
 
+
     this.logger.log(`dtStart ${dtStart.toFormat('yyyy-LL-dd HH:mm:ss')}`);
     this.logger.log(`dtEnd ${dtEnd.toFormat('yyyy-LL-dd HH:mm:ss')}`);
     this.logger.log(`diff ${diff.days}`);
 
-    return [{}];
+    return [];
 
     /*return this.getInRangeByCoordinatesData({
       appId,
