@@ -6,6 +6,7 @@ import appConfig, { getEnvFilePaths } from './config/config';
 import { EventsModule } from './events/events.module';
 import { OpenweatherModule } from './openweather/openweather.module';
 import { LevelDbModule } from './level-dbservice/level-dbservice.module';
+import { DataProcessingModule } from './data-processing/data-processing.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { LevelDbModule } from './level-dbservice/level-dbservice.module';
     LevelDbModule,
     EventsModule,
     OpenweatherModule,
+    DataProcessingModule,
   ],
   controllers: [AppController],
   providers: [AppService],

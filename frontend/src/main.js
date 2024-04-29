@@ -11,6 +11,7 @@ import ForecastTable from './components/ForecastTable.vue';
 import ForecastRemoveForm from './components/ForecastRemoveForm.vue';
 import ManageSettings from './components/ManageSettings.vue';
 import ForecastDataSummary from './components/ForecastDataSummary.vue';
+import ForecastDataPrepare from './components/ForecastDataPrepare.vue';
 
 const routes = [
     { path: '/', component: HomePage },
@@ -19,6 +20,7 @@ const routes = [
     { path: '/settings', component: ManageSettings }, 
     { path: '/remove', component: ForecastRemoveForm },
     { path: '/summary', component: ForecastDataSummary },
+    { path: '/prepare', component: ForecastDataPrepare },
   ];
   
   const router = createRouter({

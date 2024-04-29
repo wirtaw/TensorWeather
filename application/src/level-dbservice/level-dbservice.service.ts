@@ -37,7 +37,7 @@ export class LevelDbService {
       const data = await this.db.get(key);
       return JSON.parse(data);
     } catch (error) {
-      console.error('Error retrieving data:', error);
+      // console.error('Error retrieving data:', error);
       if (error?.message.includes('Key not found in database')) {
         return null;
       }

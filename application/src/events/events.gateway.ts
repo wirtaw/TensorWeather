@@ -13,6 +13,7 @@ import {
   Coordinates,
   WeatherData,
 } from '../openweather/interfaces/openweather.interfaces';
+import { DataProcessingService } from '../data-processing/data-processing.service';
 
 @WebSocketGateway({})
 export class EventsGateway
@@ -20,7 +21,10 @@ export class EventsGateway
 {
   private readonly logger = new Logger(EventsGateway.name);
 
-  constructor(private readonly openweatherService: OpenweatherService) {}
+  constructor(
+    private readonly openweatherService: OpenweatherService,
+    private readonly dataProcessingService: DataProcessingService,
+  ) {}
 
   @WebSocketServer() io: Server;
 
@@ -95,5 +99,22 @@ export class EventsGateway
     );
 
     client.emit('forecast_summary_request_done', reponse);
+  }
+
+  @SubscribeMessage('forecast_processing_data_request')
+  async handleForecastProcessingRequest(
+    client: Server,
+    payload: any,
+  ): Promise<void> {
+    // this.logger.log(`Forecast data processing`, payload);
+    const { latitude, longitude, startDate, endDate } = payload;
+    const reponse: boolean = await this.dataProcessingService.cleanAndProcess({
+      lat: latitude,
+      lon: longitude,
+      startDate,
+      endDate,
+    });
+
+    client.emit('forecast_processing_data_request_done', reponse);
   }
 }

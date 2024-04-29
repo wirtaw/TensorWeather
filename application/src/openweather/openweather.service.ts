@@ -17,7 +17,6 @@ export class OpenweatherService {
     private readonly levelDBService: LevelDbService,
   ) {
     this.appConfig = this.configService.get<AppConfig>('app');
-    Settings.defaultZone = this.appConfig.timeZone;
   }
 
   async getInRangeByCoordinatesData({
@@ -32,7 +31,7 @@ export class OpenweatherService {
     openweather,
   }) {
     const result: WeatherData[] = [];
-    
+
     for (let i = 0; i < days; i++) {
       const dt =
         startDate < endDate
@@ -43,7 +42,7 @@ export class OpenweatherService {
         await this.levelDBService.get(key);
       if (cachedData) {
         result.push(cachedData);
-        this.logger.log(`return from cache ${key}`);
+        // this.logger.log(`return from cache ${key}`);
       }
 
       if (openweather) {
@@ -74,7 +73,7 @@ export class OpenweatherService {
     startDate?: number,
     endDate?: number,
   ): Promise<WeatherData | any> {
-    const { openweatherApiKey: appId } = this.appConfig;
+    const { openweatherApiKey: appId, timeZone, syncHour } = this.appConfig;
     if (!appId) {
       throw new Error('Missing Openweather API Key in the .env');
     }
@@ -84,16 +83,14 @@ export class OpenweatherService {
       throw new Error('Invalid coordinates');
     }
 
-    const dtStart = DateTime.fromMillis(startDate, {
-        zone: this.appConfig.timeZone
-      });
+    Settings.defaultZone = timeZone;
+
+    const dtStart = DateTime.fromMillis(startDate).set({ hour: syncHour });
     if (!startDate || !dtStart.isValid) {
       throw new Error(`Invalid start date. ${dtStart.invalidExplanation}`);
     }
 
-    const dtEnd = DateTime.fromMillis(endDate, {
-        zone: this.appConfig.timeZone
-      });
+    const dtEnd = DateTime.fromMillis(endDate).set({ hour: syncHour });
     if (!endDate || !dtEnd.isValid) {
       throw new Error(`Invalid end date. ${dtEnd.invalidExplanation}`);
     }
@@ -102,6 +99,8 @@ export class OpenweatherService {
       startDate < endDate
         ? dtEnd.diff(dtStart, 'days').toObject()
         : dtStart.diff(dtEnd, 'days').toObject();
+
+    Settings.defaultZone = null;
 
     return this.getInRangeByCoordinatesData({
       appId,
@@ -126,16 +125,18 @@ export class OpenweatherService {
       throw new Error('Invalid coordinates');
     }
 
-    const dtStart = DateTime.fromMillis(startDate, {
-        zone: this.appConfig.timeZone
-      });
+    Settings.defaultZone = this.appConfig.timeZone;
+
+    const dtStart = DateTime.fromMillis(startDate).set({
+      hour: this.appConfig.syncHour,
+    });
     if (!startDate || !dtStart.isValid) {
       throw new Error(`Invalid start date. ${dtStart.invalidExplanation}`);
     }
 
-    const dtEnd = DateTime.fromMillis(endDate, {
-        zone: this.appConfig.timeZone
-      });
+    const dtEnd = DateTime.fromMillis(endDate).set({
+      hour: this.appConfig.syncHour,
+    });
     if (!endDate || !dtEnd.isValid) {
       throw new Error(`Invalid end date. ${dtEnd.invalidExplanation}`);
     }
@@ -144,6 +145,8 @@ export class OpenweatherService {
       startDate < endDate
         ? dtEnd.diff(dtStart, 'days').toObject()
         : dtStart.diff(dtEnd, 'days').toObject();
+
+    Settings.defaultZone = null;
 
     for (let i = 0; i < diff.days; i++) {
       const dt =
@@ -165,7 +168,7 @@ export class OpenweatherService {
     startDate?: number,
     endDate?: number,
   ): Promise<WeatherData | any> {
-    const { openweatherApiKey: appId, timeZone } = this.appConfig;
+    const { openweatherApiKey: appId, timeZone, syncHour } = this.appConfig;
     if (!appId) {
       throw new Error('Missing Openweather API Key in the .env');
     }
@@ -175,36 +178,29 @@ export class OpenweatherService {
       throw new Error('Invalid coordinates');
     }
 
+    Settings.defaultZone = timeZone;
 
-    this.logger.log(` zoneName ${ DateTime.local().zoneName }`);
-
-    const dtStart = DateTime.fromMillis(startDate, {
-        zone: this.appConfig.timeZone
-      });
+    const dtStart = DateTime.fromMillis(startDate).set({ hour: syncHour });
     if (!startDate || !dtStart.isValid) {
       throw new Error(`Invalid start date. ${dtStart.invalidExplanation}`);
     }
 
-    const dtEnd = DateTime.fromMillis(endDate, {
-        zone: this.appConfig.timeZone
-      });
+    const dtEnd = DateTime.fromMillis(endDate).set({ hour: syncHour });
     if (!endDate || !dtEnd.isValid) {
       throw new Error(`Invalid end date. ${dtEnd.invalidExplanation}`);
     }
+
+    //console.dir(dtStart, { depth: 3 });
+    //console.dir(dtEnd, { depth: 3 });
 
     const diff =
       startDate < endDate
         ? dtEnd.diff(dtStart, 'days').toObject()
         : dtStart.diff(dtEnd, 'days').toObject();
 
+    Settings.defaultZone = null;
 
-    this.logger.log(`dtStart ${dtStart.toFormat('yyyy-LL-dd HH:mm:ss')}`);
-    this.logger.log(`dtEnd ${dtEnd.toFormat('yyyy-LL-dd HH:mm:ss')}`);
-    this.logger.log(`diff ${diff.days}`);
-
-    return [];
-
-    /*return this.getInRangeByCoordinatesData({
+    return this.getInRangeByCoordinatesData({
       appId,
       latitude,
       longitude,
@@ -214,6 +210,6 @@ export class OpenweatherService {
       startDate,
       endDate,
       openweather: false,
-    });*/
+    });
   }
 }
