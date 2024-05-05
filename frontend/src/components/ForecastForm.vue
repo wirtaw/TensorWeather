@@ -36,7 +36,7 @@
           </v-col>
         </v-row>
         <v-row class="flex-direction is-align-self-center">
-          <v-btn color="primary" @click="submitForecast">Generate Forecast</v-btn> 
+          <v-btn color="primary" @click="submitForecast">Get Forecast</v-btn> 
         </v-row>
       </v-form>
     </v-container>

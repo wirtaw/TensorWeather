@@ -10,7 +10,7 @@
           <router-link class="navbar-item" to="/forecast">Get Forecast</router-link>
           <router-link class="navbar-item" to="/prepare">Prepare data</router-link>
           <router-link class="navbar-item" to="/remove">Remove</router-link>
-          <router-link class="navbar-item" to="/results">View Results</router-link>
+          <router-link class="navbar-item" to="/results">Model and Prediction</router-link>
           <router-link class="navbar-item" to="/summary">Summary</router-link>
           <router-link class="navbar-item" to="/settings">Settings</router-link>
         </div>

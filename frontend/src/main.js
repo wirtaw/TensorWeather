@@ -7,7 +7,7 @@ import { socket, emit, on } from './services/socket.service';
 import store from './store';
 import HomePage from './pages/HomePage.vue';
 import ForecastForm from './components/ForecastForm.vue';
-import ForecastTable from './components/ForecastTable.vue';
+import ForecastModelPrediction from './components/ForecastModelPrediction.vue';
 import ForecastRemoveForm from './components/ForecastRemoveForm.vue';
 import ManageSettings from './components/ManageSettings.vue';
 import ForecastDataSummary from './components/ForecastDataSummary.vue';
@@ -16,7 +16,7 @@ import ForecastDataPrepare from './components/ForecastDataPrepare.vue';
 const routes = [
     { path: '/', component: HomePage },
     { path: '/forecast', component: ForecastForm },
-    { path: '/results', component: ForecastTable }, 
+    { path: '/results', component: ForecastModelPrediction }, 
     { path: '/settings', component: ManageSettings }, 
     { path: '/remove', component: ForecastRemoveForm },
     { path: '/summary', component: ForecastDataSummary },

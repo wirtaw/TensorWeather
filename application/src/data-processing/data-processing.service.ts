@@ -67,6 +67,10 @@ export class DataProcessingService {
       R.where({
         max: R.is(Number),
         min: R.is(Number),
+        morning: R.is(Number),
+        afternoon: R.is(Number),
+        evening: R.is(Number),
+        night: R.is(Number),
       }),
     );
 
@@ -102,6 +106,10 @@ export class DataProcessingService {
     const myExtract = remap({
       temperature_min: ['temperature', 'min'],
       temperature_max: ['temperature', 'max'],
+      temperature_1: ['temperature', 'morning'],
+      temperature_2: ['temperature', 'afternoon'],
+      temperature_3: ['temperature', 'evening'],
+      temperature_4: ['temperature', 'night'],
       humidity: ['humidity', 'afternoon'],
       pressure: ['pressure', 'afternoon'],
       precipitation: ['precipitation', 'total'],

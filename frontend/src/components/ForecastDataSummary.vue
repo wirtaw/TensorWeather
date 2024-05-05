@@ -3,14 +3,14 @@
       <h2>Forecast Summary</h2>
       <table class="table">
         <thead>
-          <th>
-            <td>Id</td>
-            <td>Date</td>
-            <td>Temp</td>
-            <td>Humidity</td>
-            <td>Precipitation</td>
-            <td>Pressure</td>
-          </th>
+          <tr>
+            <th>Id</th>
+            <th>Date</th>
+            <th>Temp</th>
+            <th>Humidity</th>
+            <th>Precipitation</th>
+            <th>Pressure</th>
+          </tr>
         </thead>
         <tbody>
           <tr v-for="item in forecastSummary" :key="item.id"> 

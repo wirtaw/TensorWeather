@@ -37,7 +37,7 @@
                 </v-col>
                 </v-row>
         
-                <v-btn color="primary" @click="submitRemoveForecast">Generate Forecast</v-btn> 
+                <v-btn color="primary" @click="submitRemoveForecast">Remove Forecast</v-btn> 
             </v-form>
         </v-container>
     </div>

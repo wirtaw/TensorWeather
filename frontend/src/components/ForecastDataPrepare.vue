@@ -47,8 +47,12 @@
                 <tr>
                     <th>Id</th>
                     <th>Date</th>
-                    <th>Temp min</th>
-                    <th>Temp max</th>
+                    <th>Temp min (C)</th>
+                    <th>Temp max (C)</th>
+                    <th>Temp morning</th>
+                    <th>Temp afternoon</th>
+                    <th>Temp evening</th>
+                    <th>Temp night</th>
                     <th>Humidity</th>
                     <th>Precipitation</th>
                     <th>Pressure</th>
@@ -61,6 +65,10 @@
                     <td>{{ item.date }}</td>
                     <td>{{ item.temperature_min }}</td>
                     <td>{{ item.temperature_max }}</td>
+                    <td>{{ item.temperature_1 }}</td>
+                    <td>{{ item.temperature_2 }}</td>
+                    <td>{{ item.temperature_3 }}</td>
+                    <td>{{ item.temperature_4 }}</td>
                     <td>{{ item.humidity }}</td>
                     <td>{{ item.precipitation }}</td>
                     <td>{{ item.pressure }}</td>
