@@ -6,7 +6,8 @@ export default createStore({
     locationSettings: {
         latitude: null,
         longitude: null 
-    }
+    },
+    preparedData: null,
   },
   mutations: {
     setFormData(state, data) {
@@ -14,7 +15,10 @@ export default createStore({
     },
     updateLocationSettings(state, settings) {
         state.locationSettings = settings;
-    }
+    },
+    updateProcessedData(state, data) {
+      state.preparedData = data;
+  },
   },
   actions: {
     async saveFormData({ commit }, formData) {
@@ -22,6 +26,9 @@ export default createStore({
     },
     async updateLocationSettings({ commit }, settings) {
       commit('updateLocationSettings', settings);
+    },
+    async updateProcessedData({ commit }, data) {
+      commit('updateProcessedData', data);
     },
   },
 });

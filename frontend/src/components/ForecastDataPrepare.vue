@@ -38,6 +38,7 @@
                 </v-row>
                 <v-row class="flex-direction is-align-self-center">
                 <v-btn color="primary" @click="submitForecastProcessing">Process Forecast Data</v-btn> 
+                <v-btn color="primary" v-if="isDataPrepared" @click="acceptForecastProcessing">Accept Forecast Data</v-btn> 
                 </v-row>
             </v-form>
             </v-container>
@@ -83,7 +84,7 @@
   
 <script>
   import { inject, ref } from 'vue';
-  import { mapState, useStore } from 'vuex';
+  import { mapState, useStore, mapActions } from 'vuex';
   
   export default {
     data() {
@@ -107,29 +108,33 @@
         });
         const forecastRangeData = ref(null);
         const forecastCleanData = ref(null);
+        const isDataPrepared = ref(false);
 
         const on = inject('socketOn');
         const emit = inject('socketEmit');
 
         on('forecast_summary_request_done', (data) => {
+            isDataPrepared.value = true;
             forecastRangeData.value = data;
         });
 
         on('forecast_processing_data_request_done', (data) => {
+            isDataPrepared.value = true;
             forecastCleanData.value = data;
         });
 
         function submitForecastProcessing() {
             const { latitude, longitude, startDate, endDate } = formData.value;
+            
             emit('forecast_processing_data_request', {
                 latitude: !Number.isNaN(Number.parseFloat(latitude)) ? Number.parseFloat(latitude) : null,
                 longitude: !Number.isNaN(Number.parseFloat(longitude)) ? Number.parseFloat(longitude) : null,
                 startDate: (new Date(startDate)).getTime(),
                 endDate: (new Date(endDate)).getTime()
-            }); 
+            });
         }
 
-        return { forecastRangeData, forecastCleanData, formData, submitForecastProcessing };
+        return { forecastRangeData, forecastCleanData, formData, submitForecastProcessing, isDataPrepared };
     },
     mounted() {
         const emit = inject('socketEmit');
@@ -144,6 +149,18 @@
           startDate: (new Date('1999-01-01')).getTime(),
           endDate: (new Date('2024-05-01')).getTime()
         });
+    },
+    methods: {
+        ...mapActions(['updateProcessedData', 'updateLocationSettings']),
+        acceptForecastProcessing() {
+            this.updateProcessedData(this.forecastCleanData);
+        },
+        updateLocation() {
+            this.updateLocationSettings({ 
+                latitude: this.latitude,
+                longitude: this.longitude 
+            });
+        }
     }
   };
 </script>
