@@ -1,26 +1,27 @@
 <template>
     <Line
       id="my-chart-id"
-      :chart-options="chartOptions"
-      :chart-data="chartData"
+      :data="data" 
+      :options="options"
     >Chart couldn't be loaded.</Line>
   </template>
   
   <script>
   import { Line } from 'vue-chartjs'
-  import { Chart as ChartJS, Title, Tooltip, Legend, LineElement, CategoryScale, LinearScale } from 'chart.js'
+  import 'chartjs-adapter-luxon'
+  import { Chart as ChartJS, Title, Tooltip, Legend, PointElement, LineElement, CategoryScale, LinearScale, TimeScale, TimeSeriesScale, LineController } from 'chart.js'
   
-  ChartJS.register(Title, Tooltip, Legend, LineElement, CategoryScale, LinearScale)
+  ChartJS.register(Title, Tooltip, Legend, PointElement, LineElement, CategoryScale, LinearScale, TimeScale, TimeSeriesScale, LineController)
   
   export default {
     name: 'LineChart',
     components: { Line },
     props: {
-        chartData: {
+        data: {
                 type: Object,
                 required: true,
         },
-        chartOptions: {
+        options: {
             type: Object,
             default: () => {}
         }
