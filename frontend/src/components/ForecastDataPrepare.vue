@@ -43,7 +43,8 @@
             </v-form>
             </v-container>
         <div v-if="forecastCleanData">
-            <table class="table">
+            <LineChart :data="forecastProcessingDataChart" :options="chartOptions" aria-describedby="prepared-forecast-table" :id="chartId"/>
+            <table class="table" id="prepared-forecast-table">
                 <thead>
                 <tr>
                     <th>Id</th>
@@ -58,6 +59,7 @@
                     <th>Precipitation</th>
                     <th>Pressure</th>
                     <th>Wind</th>
+                    <th>Cloud cover</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -74,6 +76,7 @@
                     <td>{{ item.precipitation }}</td>
                     <td>{{ item.pressure }}</td>
                     <td>{{ item.wind }}</td>
+                    <td>{{ item.cloud_cover }}</td>
                 </tr>
                 </tbody>
             </table>
@@ -83,20 +86,69 @@
 </template>
   
 <script>
+  import { generateRandomColors, prepareDataForChart } from '../helper/chart.ts'
+  import LineChart from '../components/charts/LineChart.vue';
   import { inject, ref } from 'vue';
   import { mapState, useStore, mapActions } from 'vuex';
   
   export default {
+    components: {
+      LineChart
+    },
     data() {
         return {
             latitude: null, 
-            longitude: null
+            longitude: null,
+            chartId: 'forecast-data-prepare',
+            chartOptions: {
+              responsive: true,
+              interaction: {
+                mode: 'index',
+                intersect: false,
+              },
+              stacked: false,
+              plugins: {
+                title: {
+                  display: true,
+                  text: 'Forecast data prepare Chart'
+                }
+              },
+              scales: {
+                x: {
+                  type: 'time',
+                  time: {
+                    tooltipFormat: 'yyyy-MM-dd'
+                  },
+                  title: {
+                    display: true,
+                    text: 'Date'
+                  }
+                },
+                y: {
+                  type: 'linear',
+                  display: true,
+                  position: 'left',
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    grid: {
+                        drawOnChartArea: false,
+                    },
+                },
+              }
+            }
         }
     },
     computed: {
         ...mapState(['locationSettings'])
     },
     setup() {
+        const labelsNames = ['wind', 'precipitation', 'pressure', 'humidity', 'temperature_min', 'temperature_max', 'temperature_1', 'temperature_2', 'temperature_3', 'temperature_4', 'cloud_cover'];
+        const labelsBasic = ['wind', 'precipitation', 'pressure', 'humidity', 'temperature_min', 'temperature_max', 'temperature_1', 'temperature_2', 'temperature_3', 'temperature_4', 'cloud_cover'];
+        const colors = generateRandomColors(labelsNames.length);
+
         const store = useStore(); 
         const locationSettings = store.state.locationSettings;
 
@@ -109,6 +161,7 @@
         const forecastRangeData = ref(null);
         const forecastCleanData = ref(null);
         const isDataPrepared = ref(false);
+        const forecastProcessingDataChart = ref(null);
 
         const on = inject('socketOn');
         const emit = inject('socketEmit');
@@ -121,6 +174,9 @@
         on('forecast_processing_data_request_done', (data) => {
             isDataPrepared.value = true;
             forecastCleanData.value = data;
+            forecastProcessingDataChart.value = {
+                ...prepareDataForChart({ labelsNames, labelsBasic, colors, data })
+            };
         });
 
         function submitForecastProcessing() {
@@ -134,7 +190,7 @@
             });
         }
 
-        return { forecastRangeData, forecastCleanData, formData, submitForecastProcessing, isDataPrepared };
+        return { forecastRangeData, forecastCleanData, formData, submitForecastProcessing, isDataPrepared, forecastProcessingDataChart };
     },
     mounted() {
         const emit = inject('socketEmit');

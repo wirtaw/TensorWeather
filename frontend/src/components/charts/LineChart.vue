@@ -1,6 +1,6 @@
 <template>
     <Line
-      id="my-chart-id"
+      :id="chartId"
       :data="data" 
       :options="options"
     >Chart couldn't be loaded.</Line>
@@ -17,6 +17,10 @@
     name: 'LineChart',
     components: { Line },
     props: {
+        chartId: {
+            type: String,
+            default: `chart-id-${(new Date()).getTime()}`
+        },
         data: {
                 type: Object,
                 required: true,

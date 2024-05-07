@@ -103,6 +103,15 @@ export class DataProcessingService {
 
     const filterByPrecipitation = R.filter(checkPrecipitation);
 
+    const checkCloudCover = R.pipe(
+      R.prop('cloud_cover'),
+      R.where({
+        afternoon: R.is(Number),
+      }),
+    );
+
+    const filterByCloudCover = R.filter(checkCloudCover);
+
     const myExtract = remap({
       temperature_min: ['temperature', 'min'],
       temperature_max: ['temperature', 'max'],
@@ -114,6 +123,7 @@ export class DataProcessingService {
       pressure: ['pressure', 'afternoon'],
       precipitation: ['precipitation', 'total'],
       wind: ['wind', 'max', 'speed'],
+      cloud_cover: ['cloud_cover', 'afternoon'],
       date: ['date'],
       id: ['id'],
     });
@@ -125,6 +135,7 @@ export class DataProcessingService {
         filterByHumidity,
         filterByPressure,
         filterByPrecipitation,
+        filterByCloudCover,
       )(rawData),
     );
 
