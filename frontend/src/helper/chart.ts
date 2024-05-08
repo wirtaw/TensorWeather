@@ -1,3 +1,5 @@
+import { DateTime } from 'luxon';
+
 const generateRandomColors = function (numColors) {
     const colors = [];
     for (let i = 0; i < numColors; i++) {
@@ -31,61 +33,61 @@ const prepareDataForChart = function({ labelsNames, labelsBasic, colors, data })
     for (const item of data) {
         labels.push(item.date);
         for (const key in item) {
-        if (labelsBasic.includes(key)) {
-            if ('temperature' === key) {
-                const list = maps.has('temperature_min') ? maps.get('temperature_min') : [];
-                const list2 = maps.has('temperature_max') ? maps.get('temperature_max') : [];
-                const list3 = maps.has('temperature_1') ? maps.get('temperature_1') : [];
-                const list4 = maps.has('temperature_2') ? maps.get('temperature_2') : [];
-                const list5 = maps.has('temperature_3') ? maps.get('temperature_3') : [];
-                const list6 = maps.has('temperature_4') ? maps.get('temperature_4') : [];
-                maps.set('temperature_min', [...list, {x: item.date, y: item?.temperature?.min || null }]);
-                maps.set('temperature_max', [...list2, {x: item.date, y: item?.temperature?.max || null }]);
-                maps.set('temperature_1', [...list3, {x: item.date, y: item?.temperature?.morning || null }]);
-                maps.set('temperature_2', [...list4, {x: item.date, y: item?.temperature?.afternoon || null }]);
-                maps.set('temperature_3', [...list5, {x: item.date, y: item?.temperature?.evening || null }]);
-                maps.set('temperature_4', [...list6, {x: item.date, y: item?.temperature?.night || null }]);
-            } else if ('humidity' === key) {
-                const list = maps.has('humidity') ? maps.get('humidity') : [];
-                maps.set(key, [...list, {x: item.date, y: item?.humidity?.afternoon || item?.humidity }]);
-            } else if ('pressure' === key) {
-                const list = maps.has('pressure') ? maps.get('pressure') : [];
-                maps.set(key, [...list, {x: item.date, y: item?.pressure?.afternoon || item?.pressure }]);
-            } else if ('precipitation' === key) {
-                const list = maps.has('precipitation') ? maps.get('precipitation') : [];
-                maps.set(key, [...list, {x: item.date, y: item?.precipitation?.total || item?.precipitation }]);
-            } else if ('wind' === key) {
-                const list = maps.has('wind') ? maps.get('wind') : [];
-                maps.set(key, [...list, {x: item.date, y: item?.wind?.max?.speed || item?.wind}]);
-            } else if ('cloud_cover' === key) {
-                const list = maps.has('cloud_cover') ? maps.get('cloud_cover') : [];
-                maps.set(key, [...list, {x: item.date, y: item?.cloud_cover?.afternoon || item?.cloud_cover}]);
-            } else if ('temperature_min' === key) {
-                const list = maps.has('temperature_min') ? maps.get('temperature_min') : [];
-                
-                maps.set('temperature_min', [...list, {x: item.date, y: item?.temperature_min || null }]);
-            } else if ('temperature_max' === key) {
-                const list = maps.has('temperature_max') ? maps.get('temperature_max') : [];
-                
-                maps.set('temperature_max', [...list, {x: item.date, y: item?.temperature_max || null }]);
-            } else if ('temperature_1' === key) {
-                const list = maps.has('temperature_1') ? maps.get('temperature_1') : [];
-                
-                maps.set('temperature_1', [...list, {x: item.date, y: item?.temperature_1 || null }]);
-            } else if ('temperature_2' === key) {
-                const list = maps.has('temperature_2') ? maps.get('temperature_2') : [];
-                
-                maps.set('temperature_2', [...list, {x: item.date, y: item?.temperature_2 || null }]);
-            } else if ('temperature_3' === key) {
-                const list = maps.has('temperature_3') ? maps.get('temperature_3') : [];
-                
-                maps.set('temperature_3', [...list, {x: item.date, y: item?.temperature_3 || null }]);
-            } else if ('temperature_4' === key) {
-                const list = maps.has('temperature_4') ? maps.get('temperature_4') : [];
-                
-                maps.set('temperature_4', [...list, {x: item.date, y: item?.temperature_4 || null }]);
+            if (labelsBasic.includes(key)) {
+                if ('temperature' === key) {
+                    const list = maps.has('temperature_min') ? maps.get('temperature_min') : [];
+                    const list2 = maps.has('temperature_max') ? maps.get('temperature_max') : [];
+                    const list3 = maps.has('temperature_1') ? maps.get('temperature_1') : [];
+                    const list4 = maps.has('temperature_2') ? maps.get('temperature_2') : [];
+                    const list5 = maps.has('temperature_3') ? maps.get('temperature_3') : [];
+                    const list6 = maps.has('temperature_4') ? maps.get('temperature_4') : [];
+                    maps.set('temperature_min', [...list, {x: item.date, y: item?.temperature?.min || null }]);
+                    maps.set('temperature_max', [...list2, {x: item.date, y: item?.temperature?.max || null }]);
+                    maps.set('temperature_1', [...list3, {x: item.date, y: item?.temperature?.morning || null }]);
+                    maps.set('temperature_2', [...list4, {x: item.date, y: item?.temperature?.afternoon || null }]);
+                    maps.set('temperature_3', [...list5, {x: item.date, y: item?.temperature?.evening || null }]);
+                    maps.set('temperature_4', [...list6, {x: item.date, y: item?.temperature?.night || null }]);
+                } else if ('humidity' === key) {
+                    const list = maps.has('humidity') ? maps.get('humidity') : [];
+                    maps.set(key, [...list, {x: item.date, y: item?.humidity?.afternoon || item?.humidity }]);
+                } else if ('pressure' === key) {
+                    const list = maps.has('pressure') ? maps.get('pressure') : [];
+                    maps.set(key, [...list, {x: item.date, y: item?.pressure?.afternoon || item?.pressure }]);
+                } else if ('precipitation' === key) {
+                    const list = maps.has('precipitation') ? maps.get('precipitation') : [];
+                    maps.set(key, [...list, {x: item.date, y: item?.precipitation?.total || item?.precipitation }]);
+                } else if ('wind' === key) {
+                    const list = maps.has('wind') ? maps.get('wind') : [];
+                    maps.set(key, [...list, {x: item.date, y: item?.wind?.max?.speed || item?.wind}]);
+                } else if ('cloud_cover' === key) {
+                    const list = maps.has('cloud_cover') ? maps.get('cloud_cover') : [];
+                    maps.set(key, [...list, {x: item.date, y: item?.cloud_cover?.afternoon || item?.cloud_cover}]);
+                } else if ('temperature_min' === key) {
+                    const list = maps.has('temperature_min') ? maps.get('temperature_min') : [];
+                    
+                    maps.set('temperature_min', [...list, {x: item.date, y: item?.temperature_min || null }]);
+                } else if ('temperature_max' === key) {
+                    const list = maps.has('temperature_max') ? maps.get('temperature_max') : [];
+                    
+                    maps.set('temperature_max', [...list, {x: item.date, y: item?.temperature_max || null }]);
+                } else if ('temperature_1' === key) {
+                    const list = maps.has('temperature_1') ? maps.get('temperature_1') : [];
+                    
+                    maps.set('temperature_1', [...list, {x: item.date, y: item?.temperature_1 || null }]);
+                } else if ('temperature_2' === key) {
+                    const list = maps.has('temperature_2') ? maps.get('temperature_2') : [];
+                    
+                    maps.set('temperature_2', [...list, {x: item.date, y: item?.temperature_2 || null }]);
+                } else if ('temperature_3' === key) {
+                    const list = maps.has('temperature_3') ? maps.get('temperature_3') : [];
+                    
+                    maps.set('temperature_3', [...list, {x: item.date, y: item?.temperature_3 || null }]);
+                } else if ('temperature_4' === key) {
+                    const list = maps.has('temperature_4') ? maps.get('temperature_4') : [];
+                    
+                    maps.set('temperature_4', [...list, {x: item.date, y: item?.temperature_4 || null }]);
+                }
             }
-        }
         }
     }
     let i = 0;
@@ -104,4 +106,65 @@ const prepareDataForChart = function({ labelsNames, labelsBasic, colors, data })
     return { labels, datasets };
 };
 
-export { generateRandomColors, prepareDataForChart };
+const reduceYearByMonths = function({ colors, data }) {
+    const counter = new Map();
+    const years = new Set();
+    for (const item of data) {
+        const { date } = item;
+        const dt = DateTime.fromISO(date);
+
+        if (dt.isValid) {
+            let items = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+            const year = dt.get('year');
+            if (counter.has(year)) {
+                items = counter.get(year);
+            }
+            items[dt.get('month') - 1]++;
+            counter.set(year, items);
+            if (!years.has(year)) {
+                years.add(year);
+            }
+        }
+    }
+    console.dir(counter.values(), { depth: 2});
+
+    const months = [
+        'January',
+        'February',
+        'March',
+        'April',
+        'May',
+        'June',
+        'July',
+        'August',
+        'September',
+        'October',
+        'November',
+        'December'
+    ];
+
+    const datasets = [];
+    for (let i=0; i < months.length; i++) {
+        const data = [];
+
+        for (const year of [...years]) {
+            if (counter.has(year)) {
+                const items = counter.get(year);
+                data.push(items[i]);
+            }
+        }
+
+        datasets.push({
+            label: months[i],
+            data,
+            backgroundColor: colors[i],
+        });
+    }
+
+    return {
+        labels: [...years],
+        datasets
+    };
+};
+
+export { generateRandomColors, prepareDataForChart, reduceYearByMonths };

@@ -2,6 +2,7 @@
     <div v-if="forecastSummary">
       <h2>Forecast Summary</h2>
       <LineChart :data="forecastSummaryChart" :options="chartOptions" aria-describedby="summary-table" :id="chartId"/>
+      <BarChart :data="forecastSummaryBarChart" :options="chartOptionsBar" aria-describedby="summary-table" :id="chartBarId"/>
       <table class="table" id="summary-table">
         <caption>Forecast for location {{ latitude }} / {{ longitude }} the years 1999-01-01 to 2024-05-30.</caption>
         <thead>
@@ -29,20 +30,23 @@
 </template>
 
 <script>
-  import { generateRandomColors, prepareDataForChart } from '../helper/chart.ts'
+  import { generateRandomColors, prepareDataForChart, reduceYearByMonths } from '../helper/chart.ts'
   import LineChart from '../components/charts/LineChart.vue';
+  import BarChart from '../components/charts/BarChart.vue';
   import { inject, ref } from 'vue';
   import { mapState } from 'vuex';
   
   export default {
     components: {
-      LineChart
+      LineChart,
+      BarChart
     },
     data() {
         return {
             latitude: null, 
             longitude: null,
             chartId: 'forecast-data-summary',
+            chartBarId: 'forecast-bar-summary',
             chartOptions: {
               responsive: true,
               interaction: {
@@ -81,6 +85,17 @@
                     },
                 },
               }
+            },
+            chartOptionsBar: {
+              responsive: true,
+              scales: {
+                x: {
+                  stacked: true,
+                },
+                y: {
+                  stacked: true
+                }
+              }
             }
         }
     },
@@ -91,9 +106,11 @@
         const labelsNames = ['wind', 'precipitation', 'pressure', 'humidity', 'temperature_min', 'temperature_max', 'temperature_1', 'temperature_2', 'temperature_3', 'temperature_4', 'cloud_cover'];
         const labelsBasic = ['wind', 'precipitation', 'pressure', 'humidity', 'temperature', 'cloud_cover'];
         const colors = generateRandomColors(labelsNames.length);
+        const colorsMonth = generateRandomColors(12);
         
         const forecastSummary = ref(null);
         const forecastSummaryChart = ref(null);
+        const forecastSummaryBarChart = ref(null);
 
         const on = inject('socketOn');
 
@@ -102,9 +119,12 @@
             forecastSummaryChart.value = {
               ...prepareDataForChart({ labelsNames, labelsBasic, colors, data })
             }
+            forecastSummaryBarChart.value = {
+              ...reduceYearByMonths({ colors: colorsMonth, data })
+            };
         });
 
-        return { forecastSummary, forecastSummaryChart };
+        return { forecastSummary, forecastSummaryChart, forecastSummaryBarChart };
     },
     mounted() {
         const emit = inject('socketEmit');
