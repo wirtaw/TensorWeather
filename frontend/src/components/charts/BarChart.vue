@@ -4,9 +4,9 @@
       :data="data" 
       :options="options"
     >Chart couldn't be loaded.</Bar>
-  </template>
+</template>
   
-  <script>
+<script>
   import { Bar } from 'vue-chartjs'
   import 'chartjs-adapter-luxon'
   import { Chart as ChartJS,

@@ -89,16 +89,21 @@ export class EventsGateway
     client: Server,
     payload: any,
   ): Promise<void> {
-    // this.logger.log(`Forecast summary`, payload);
-    const { latitude, longitude, startDate, endDate } = payload;
-    const coordinates: Coordinates = { latitude, longitude };
-    const reponse: boolean = await this.openweatherService.getAllHistoricalData(
-      coordinates,
-      startDate,
-      endDate,
-    );
+    try {
+      // this.logger.log(`Forecast summary`, payload);
+      const { latitude, longitude, startDate, endDate } = payload;
+      const coordinates: Coordinates = { latitude, longitude };
+      const reponse: boolean =
+        await this.openweatherService.getAllHistoricalData(
+          coordinates,
+          startDate,
+          endDate,
+        );
 
-    client.emit('forecast_summary_request_done', reponse);
+      client.emit('forecast_summary_request_done', reponse);
+    } catch (e) {
+      client.emit('forecast_summary_request_failed', e);
+    }
   }
 
   @SubscribeMessage('forecast_processing_data_request')
@@ -107,14 +112,19 @@ export class EventsGateway
     payload: any,
   ): Promise<void> {
     // this.logger.log(`Forecast data processing`, payload);
-    const { latitude, longitude, startDate, endDate } = payload;
-    const reponse: boolean = await this.dataProcessingService.cleanAndProcess({
-      lat: latitude,
-      lon: longitude,
-      startDate,
-      endDate,
-    });
-
-    client.emit('forecast_processing_data_request_done', reponse);
+    try {
+      const { latitude, longitude, startDate, endDate } = payload;
+      const reponse: boolean = await this.dataProcessingService.cleanAndProcess(
+        {
+          lat: latitude,
+          lon: longitude,
+          startDate,
+          endDate,
+        },
+      );
+      client.emit('forecast_processing_data_request_done', reponse);
+    } catch (e) {
+      client.emit('forecast_processing_data_request_failed', e);
+    }
   }
 }

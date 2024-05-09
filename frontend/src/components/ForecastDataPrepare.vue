@@ -41,7 +41,10 @@
                 <v-btn color="primary" v-if="isDataPrepared" @click="acceptForecastProcessing">Accept Forecast Data</v-btn> 
                 </v-row>
             </v-form>
-            </v-container>
+        </v-container>
+        <div class="container" v-if="isError">
+            <WarningArticle :title="'Problem with processing'" :message="errorMessage"/>
+        </div>
         <div v-if="forecastCleanData">
             <LineChart :data="forecastProcessingDataChart" :options="chartOptions" aria-describedby="prepared-forecast-table" :id="chartId"/>
             <table class="table" id="prepared-forecast-table">
@@ -88,12 +91,14 @@
 <script>
   import { generateRandomColors, prepareDataForChart } from '../helper/chart.ts'
   import LineChart from '../components/charts/LineChart.vue';
+  import WarningArticle from '../components/articles/WarningArticle.vue';
   import { inject, ref } from 'vue';
   import { mapState, useStore, mapActions } from 'vuex';
   
   export default {
     components: {
-      LineChart
+      LineChart,
+      WarningArticle
     },
     data() {
         return {
@@ -158,25 +163,34 @@
             startDate: null,
             endDate: null,
         });
-        const forecastRangeData = ref(null);
+
         const forecastCleanData = ref(null);
         const isDataPrepared = ref(false);
+        const isError = ref(false);
+        const errorMessage = ref('');
         const forecastProcessingDataChart = ref(null);
 
         const on = inject('socketOn');
         const emit = inject('socketEmit');
 
-        on('forecast_summary_request_done', (data) => {
-            isDataPrepared.value = true;
-            forecastRangeData.value = data;
-        });
-
         on('forecast_processing_data_request_done', (data) => {
+            isError.value = false;
+            errorMessage.value = '';
             isDataPrepared.value = true;
             forecastCleanData.value = data;
+            store.dispatch('updateProcessedData', data);
             forecastProcessingDataChart.value = {
                 ...prepareDataForChart({ labelsNames, labelsBasic, colors, data })
             };
+        });
+
+        on('forecast_processing_data_request_failed', (data) => {
+            isError.value = true;
+            isDataPrepared.value = false;
+            forecastProcessingDataChart.value = null;
+            console.dir(Object.keys(data), { depth: 2});
+            console.dir(Object.values(data), { depth: 2});
+            errorMessage.value = data?.toString() || 'Unknown message';
         });
 
         function submitForecastProcessing() {
@@ -190,7 +204,15 @@
             });
         }
 
-        return { forecastRangeData, forecastCleanData, formData, submitForecastProcessing, isDataPrepared, forecastProcessingDataChart };
+        return {
+            forecastCleanData,
+            formData,
+            submitForecastProcessing,
+            isDataPrepared,
+            forecastProcessingDataChart,
+            isError,
+            errorMessage
+         };
     },
     mounted() {
         const emit = inject('socketEmit');
@@ -207,10 +229,7 @@
         });
     },
     methods: {
-        ...mapActions(['updateProcessedData', 'updateLocationSettings']),
-        acceptForecastProcessing() {
-            this.updateProcessedData(this.forecastCleanData);
-        },
+        ...mapActions(['updateLocationSettings']),
         updateLocation() {
             this.updateLocationSettings({ 
                 latitude: this.latitude,

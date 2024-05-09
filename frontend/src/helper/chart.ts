@@ -126,7 +126,6 @@ const reduceYearByMonths = function({ colors, data }) {
             }
         }
     }
-    console.dir(counter.values(), { depth: 2});
 
     const months = [
         'January',
