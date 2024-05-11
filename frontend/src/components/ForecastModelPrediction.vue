@@ -12,6 +12,14 @@
             Set date start - end ranges. Place coordinates.
             Select data types. By default all.
             Press train button. 
+            <v-container class="form-container" v-if="isDataPrepared">
+              <v-form>
+                <v-row class="flex-direction is-align-self-center">
+                  <v-btn color="primary" @click="trainModel">train</v-btn>
+                </v-row>
+              </v-form>
+            </v-container>
+            <router-link class="button" to="/prepare" v-if="!isDataPrepared">Prepare data</router-link>
           </p>
           <h2 class="has-text-light">Our model</h2>
           <div v-if="forecastResult">
@@ -49,17 +57,48 @@
   
 <script>
   import { ref, inject } from 'vue';
+  import { useStore } from 'vuex';
   
   export default {
+    data() {
+        return {
+            latitude: null, 
+            longitude: null,
+            startDate: null,
+            endDate: null
+        }
+    },
     setup() {
+      const store = useStore(); 
+      const locationSettings = store.state.locationSettings;
+      const learnDateRange = store.state.learnDateRange;
+      const preparedData = store.state.preparedData;
+
+      const predictionSettings = ref({ 
+          latitude: locationSettings.latitude || '',
+          longitude: locationSettings.longitude || '',
+          startDate: learnDateRange.startDate,
+          endDate: learnDateRange.endDate,
+      });
+
       const forecastResult = ref(null);
+      const isDataPrepared = ref(false);
       const on = inject('socketOn');
+
+      if (preparedData && Array.isArray(preparedData) > 0) {
+        isDataPrepared.value = true;
+      }
 
       on('forecast_request_done', (data) => {
         forecastResult.value = data;
       });
+
+      function trainModel() {
+        return 'done';
+      }
   
-      return { forecastResult };
+      return { forecastResult, predictionSettings, isDataPrepared, trainModel };
     },
+
   };
 </script>

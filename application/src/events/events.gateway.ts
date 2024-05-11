@@ -72,16 +72,24 @@ export class EventsGateway
     client: Server,
     payload: any,
   ): Promise<void> {
-    // this.logger.log(`Forecast `, payload);
-    const { latitude, longitude, startDate, endDate } = payload;
-    const coordinates: Coordinates = { latitude, longitude };
-    const reponse: boolean = await this.openweatherService.deleteHistoricalData(
-      coordinates,
-      startDate,
-      endDate,
-    );
+    try {
+      // this.logger.log(`Forecast `, payload);
+      const { latitude, longitude, startDate, endDate } = payload;
+      const coordinates: Coordinates = { latitude, longitude };
+      const reponse: boolean =
+        await this.openweatherService.deleteHistoricalData(
+          coordinates,
+          startDate,
+          endDate,
+        );
 
-    client.emit('forecast_request_remove_done', reponse);
+      client.emit('forecast_request_remove_done', reponse);
+    } catch (e) {
+      this.logger.error(`Forecast remove error `, e?.message.toString() || '');
+      client.emit('forecast_remove_failed', {
+        message: e?.message.toString() || '',
+      });
+    }
   }
 
   @SubscribeMessage('forecast_summary_request')
@@ -102,7 +110,10 @@ export class EventsGateway
 
       client.emit('forecast_summary_request_done', reponse);
     } catch (e) {
-      client.emit('forecast_summary_request_failed', e);
+      this.logger.error(`Forecast summary error `, e?.message.toString() || '');
+      client.emit('forecast_summary_request_failed', {
+        message: e?.message.toString() || '',
+      });
     }
   }
 
@@ -124,7 +135,10 @@ export class EventsGateway
       );
       client.emit('forecast_processing_data_request_done', reponse);
     } catch (e) {
-      client.emit('forecast_processing_data_request_failed', e);
+      this.logger.error(`Forecast summary error `, e?.message.toString() || '');
+      client.emit('forecast_processing_data_request_failed', {
+        message: e?.message.toString() || '',
+      });
     }
   }
 }

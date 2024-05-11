@@ -37,8 +37,7 @@
                 </v-col>
                 </v-row>
                 <v-row class="flex-direction is-align-self-center">
-                <v-btn color="primary" @click="submitForecastProcessing">Process Forecast Data</v-btn> 
-                <v-btn color="primary" v-if="isDataPrepared" @click="acceptForecastProcessing">Accept Forecast Data</v-btn> 
+                <v-btn color="primary" @click="submitForecastProcessing">Process Forecast Data</v-btn>
                 </v-row>
             </v-form>
         </v-container>
@@ -93,7 +92,7 @@
   import LineChart from '../components/charts/LineChart.vue';
   import WarningArticle from '../components/articles/WarningArticle.vue';
   import { inject, ref } from 'vue';
-  import { mapState, useStore, mapActions } from 'vuex';
+  import { mapState, useStore } from 'vuex';
   
   export default {
     components: {
@@ -104,6 +103,8 @@
         return {
             latitude: null, 
             longitude: null,
+            startDate: null,
+            endDate: null,
             chartId: 'forecast-data-prepare',
             chartOptions: {
               responsive: true,
@@ -147,7 +148,7 @@
         }
     },
     computed: {
-        ...mapState(['locationSettings'])
+        ...mapState(['locationSettings', 'learnDateRange'])
     },
     setup() {
         const labelsNames = ['wind', 'precipitation', 'pressure', 'humidity', 'temperature_min', 'temperature_max', 'temperature_1', 'temperature_2', 'temperature_3', 'temperature_4', 'cloud_cover'];
@@ -156,12 +157,13 @@
 
         const store = useStore(); 
         const locationSettings = store.state.locationSettings;
+        const learnDateRange = store.state.learnDateRange;
 
         const formData = ref({ 
             latitude: locationSettings.latitude || '',
             longitude: locationSettings.longitude || '',
-            startDate: null,
-            endDate: null,
+            startDate: learnDateRange.startDate,
+            endDate: learnDateRange.endDate,
         });
 
         const forecastCleanData = ref(null);
@@ -188,13 +190,19 @@
             isError.value = true;
             isDataPrepared.value = false;
             forecastProcessingDataChart.value = null;
-            console.dir(Object.keys(data), { depth: 2});
-            console.dir(Object.values(data), { depth: 2});
-            errorMessage.value = data?.toString() || 'Unknown message';
+            errorMessage.value = data?.message || 'Unknown message';
         });
 
         function submitForecastProcessing() {
             const { latitude, longitude, startDate, endDate } = formData.value;
+            store.dispatch('updateLocationSettings', {
+                latitude,
+                longitude 
+            });
+            store.dispatch('setLearnDateRange', {
+                startDate,
+                endDate 
+            });
             
             emit('forecast_processing_data_request', {
                 latitude: !Number.isNaN(Number.parseFloat(latitude)) ? Number.parseFloat(latitude) : null,
@@ -220,22 +228,16 @@
         const { latitude, longitude } = this.locationSettings;
         this.latitude = latitude;
         this.longitude = longitude;
+        const { startDate, endDate } = this.learnDateRange;
+        this.startDate = startDate;
+        this.endDate = endDate;
 
         emit('forecast_summary_request', {
           latitude: !Number.isNaN(Number.parseFloat(latitude)) ? Number.parseFloat(this.latitude) : null,
           longitude: !Number.isNaN(Number.parseFloat(longitude)) ? Number.parseFloat(this.longitude) : null,
-          startDate: (new Date('1999-01-01')).getTime(),
-          endDate: (new Date('2024-05-01')).getTime()
+          startDate: (startDate) ? (new Date(startDate)).getTime() : (new Date('1999-01-01')).getTime(),
+          endDate: (endDate) ? (new Date(endDate)).getTime() : (new Date('2024-05-01')).getTime()
         });
-    },
-    methods: {
-        ...mapActions(['updateLocationSettings']),
-        updateLocation() {
-            this.updateLocationSettings({ 
-                latitude: this.latitude,
-                longitude: this.longitude 
-            });
-        }
     }
   };
 </script>

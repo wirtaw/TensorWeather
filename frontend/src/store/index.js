@@ -8,6 +8,14 @@ export default createStore({
         longitude: null 
     },
     preparedData: null,
+    predictDateRange: {
+      startDate: null,
+      endDate: null 
+    },
+    learnDateRange: {
+      startDate: null,
+      endDate: null 
+    },
   },
   mutations: {
     setFormData(state, data) {
@@ -18,7 +26,13 @@ export default createStore({
     },
     updateProcessedData(state, data) {
       state.preparedData = data;
-  },
+    },
+    setPredictDateRange(state, data) {
+      state.predictDateRange = data;
+    },
+    setLearnDateRange(state, data) {
+      state.learnDateRange = data;
+    },
   },
   actions: {
     async saveFormData({ commit }, formData) {
@@ -29,6 +43,12 @@ export default createStore({
     },
     async updateProcessedData({ commit }, data) {
       commit('updateProcessedData', data);
+    },
+    async setPredictDateRange({ commit }, data) {
+      commit('setPredictDateRange', data);
+    },
+    async setLearnDateRange({ commit }, data) {
+      commit('setLearnDateRange', data);
     },
   },
 });

@@ -141,8 +141,7 @@
             forecastSummary.value = null;
             forecastSummaryChart.value = null;
             forecastSummaryBarChart.value = null;
-            // console.dir(data, { depth: 2});
-            errorMessage.value = data?.message.toString() || 'Unknown message';
+            errorMessage.value = data?.message || 'Unknown message';
         });
 
         return { 
