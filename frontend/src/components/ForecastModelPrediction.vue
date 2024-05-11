@@ -12,15 +12,17 @@
             Set date start - end ranges. Place coordinates.
             Select data types. By default all.
             Press train button. 
-            <v-container class="form-container" v-if="isDataPrepared">
+            <v-container class="form-container is-flex is-justify-content-center" v-if="isDataPrepared">
               <v-form>
                 <v-row class="flex-direction is-align-self-center">
                   <v-btn color="primary" @click="trainModel">train</v-btn>
                 </v-row>
               </v-form>
             </v-container>
-            <router-link class="button" to="/prepare" v-if="!isDataPrepared">Prepare data</router-link>
-          </p>
+            <span class="buttons is-flex is-justify-content-center">
+              <router-link class="button" to="/prepare" v-if="!isDataPrepared">Prepare data</router-link>
+            </span>
+            </p>
           <h2 class="has-text-light">Our model</h2>
           <div v-if="forecastResult">
             <h2 class="has-text-light">Forecast Result</h2>
@@ -58,6 +60,14 @@
 <script>
   import { ref, inject } from 'vue';
   import { useStore } from 'vuex';
+  import * as tf from '@tensorflow/tfjs';
+  import * as tfvis from '@tensorflow/tfjs-vis';
+
+  window.tf = tf;
+  window.tfvis = tfvis;
+
+  window.data;
+  window.model;
   
   export default {
     data() {
@@ -73,6 +83,8 @@
       const locationSettings = store.state.locationSettings;
       const learnDateRange = store.state.learnDateRange;
       const preparedData = store.state.preparedData;
+      const columns = Object.keys(preparedData[0])
+        .filter((name) => !['id'].includes(name));
 
       const predictionSettings = ref({ 
           latitude: locationSettings.latitude || '',
@@ -83,6 +95,8 @@
 
       const forecastResult = ref(null);
       const isDataPrepared = ref(false);
+      const means = ref([]);
+      const stddevs = ref([]);
       const on = inject('socketOn');
 
       if (preparedData && Array.isArray(preparedData) > 0) {
@@ -93,11 +107,54 @@
         forecastResult.value = data;
       });
 
-      function trainModel() {
-        return 'done';
+      async function trainModel() {
+        tf.tidy(() => {
+          means.value = [];
+          stddevs.value = [];
+          
+          for (const columnName of columns) {
+            const data = tf.tensor1d(getColumnData(columnName).slice(0, 6 * 24 * 365));
+            //console.log('tf.tensor1d data:', data);
+            const moments = tf.moments(data);
+            means.value.push(moments.mean.dataSync());
+            //console.log('tf.moments:', moments);
+            stddevs.value.push(Math.sqrt(moments.variance.dataSync()));
+          }
+          console.log('means:', means.value);
+          console.log('stddevs:', stddevs.value);
+        });
+      }
+
+      function getColumnData(columnName, includeTime, beginIndex, length, stride) {
+        const columnIndex = columns.indexOf(columnName);
+        const numRows = preparedData.length;
+
+        console.log('columnIndex:', columnIndex);
+        console.log('columnName:', columnName);
+
+        if (!beginIndex) {
+          beginIndex = 0;
+        }
+        if (!length) {
+          length = numRows - beginIndex;
+        }
+        if (!stride) {
+          stride = 1;
+        }
+        const out = [];
+        for (let i = beginIndex; i < beginIndex + length && i < numRows;
+            i += stride) {
+          let value = preparedData[i][columnIndex];
+          if (includeTime) {
+            value = {x: this.dateTime[i].getTime(), y: value};
+          }
+          out.push(value);
+        }
+        console.log('out:', out.length);
+        return out;
       }
   
-      return { forecastResult, predictionSettings, isDataPrepared, trainModel };
+      return { forecastResult, predictionSettings, isDataPrepared, trainModel, getColumnData };
     },
 
   };
