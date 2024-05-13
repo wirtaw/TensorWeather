@@ -62,12 +62,6 @@
   import { useStore } from 'vuex';
   import * as tf from '@tensorflow/tfjs';
   import * as tfvis from '@tensorflow/tfjs-vis';
-
-  window.tf = tf;
-  window.tfvis = tfvis;
-
-  window.data;
-  window.model;
   
   export default {
     data() {
@@ -79,6 +73,12 @@
         }
     },
     setup() {
+      window.tf = tf;
+      window.tfvis = tfvis;
+
+      window.data;
+      window.model;
+
       const store = useStore(); 
       const locationSettings = store.state.locationSettings;
       const learnDateRange = store.state.learnDateRange;
@@ -97,10 +97,12 @@
       const isDataPrepared = ref(false);
       const means = ref([]);
       const stddevs = ref([]);
+      const normalizedData = ref([]);
       const on = inject('socketOn');
 
       if (preparedData && Array.isArray(preparedData) > 0) {
         isDataPrepared.value = true;
+        tfvis.visor().surface({name: 'Forecast Surface', tab: 'My Tab'});
       }
 
       on('forecast_request_done', (data) => {
@@ -114,15 +116,28 @@
           
           for (const columnName of columns) {
             const data = tf.tensor1d(getColumnData(columnName).slice(0, 6 * 24 * 365));
-            //console.log('tf.tensor1d data:', data);
+            console.log('tf.tensor1d data:', data);
             const moments = tf.moments(data);
             means.value.push(moments.mean.dataSync());
-            //console.log('tf.moments:', moments);
+            console.log('tf.moments:', moments);
             stddevs.value.push(Math.sqrt(moments.variance.dataSync()));
           }
           console.log('means:', means.value);
           console.log('stddevs:', stddevs.value);
         });
+        const numRows = preparedData.length;
+
+        // Cache normalized values.
+        normalizedData.value = [];
+        for (let i = 0; i < numRows; ++i) {
+          const row = [];
+          for (let j = 0; j < columns.length; ++j) {
+            const columnIndex = columns.indexOf(columns[j]);
+            row.push((preparedData[i][columnIndex] - means.value[columnIndex]) / stddevs.value[columnIndex]);
+          }
+          normalizedData.value.push(row);
+        }
+        console.log('normalizedData:', normalizedData.value);
       }
 
       function getColumnData(columnName, includeTime, beginIndex, length, stride) {
@@ -154,7 +169,7 @@
         return out;
       }
   
-      return { forecastResult, predictionSettings, isDataPrepared, trainModel, getColumnData };
+      return { forecastResult, predictionSettings, isDataPrepared, trainModel, getColumnData, normalizedData };
     },
 
   };
