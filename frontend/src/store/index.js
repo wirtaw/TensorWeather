@@ -16,6 +16,10 @@ export default createStore({
       startDate: null,
       endDate: null 
     },
+    trainArguments: {
+      modelType: null,
+      gpu: false,
+    }
   },
   mutations: {
     setFormData(state, data) {
@@ -33,6 +37,9 @@ export default createStore({
     setLearnDateRange(state, data) {
       state.learnDateRange = data;
     },
+    setArguments(state, data) {
+      state.trainArguments = data;
+    },
   },
   actions: {
     async saveFormData({ commit }, formData) {
@@ -49,6 +56,9 @@ export default createStore({
     },
     async setLearnDateRange({ commit }, data) {
       commit('setLearnDateRange', data);
+    },
+    async setArguments({ commit }, data) {
+      commit('setArguments', data);
     },
   },
 });

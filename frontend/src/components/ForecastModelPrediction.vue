@@ -12,17 +12,54 @@
             Set date start - end ranges. Place coordinates.
             Select data types. By default all.
             Press train button. 
-            <v-container class="form-container is-flex is-justify-content-center" v-if="isDataPrepared">
+            <v-container class="form-container is-flex is-justify-content-center" id="trainForm" v-if="isDataPrepared">
               <v-form>
                 <v-row class="flex-direction is-align-self-center">
-                  <v-btn color="primary" @click="trainModel">train</v-btn>
+                  <v-btn color="primary" @click="loadData">load</v-btn>
+                  <v-btn color="primary" :disabled="!isDataLoaded" @click="trainModel">train</v-btn>
                 </v-row>
               </v-form>
             </v-container>
             <span class="buttons is-flex is-justify-content-center">
               <router-link class="button" to="/prepare" v-if="!isDataPrepared">Prepare data</router-link>
             </span>
-            </p>
+            <v-container class="form-container">
+              <v-form>
+                <v-row>
+                  <v-col cols="12" md="6">
+                    <v-select 
+                    v-model="predictionArguments.modelType" 
+                    label="'model type'"
+                    :items="modelTypes"
+                    >
+                      <v-tooltip
+                        location="end"
+                        activator="parent">
+                        Type of the model to train. Use 'baseline' to compute the commonsense baseline prediction error.
+                      </v-tooltip>
+                    </v-select>
+                  </v-col>
+                </v-row>
+                <v-row>
+                  <v-col cols="12" md="6">
+                    <v-checkbox 
+                    :label="`GPU :${predictionArguments.gpu}`"
+                    v-model="predictionArguments.gpu"
+                    style="display: block;">
+                  </v-checkbox>
+                  </v-col>
+                </v-row>
+                <v-row>
+                  <v-col cols="12" md="6">
+                    
+                  </v-col>
+                </v-row>
+                <v-row class="flex-direction is-align-self-center">
+                  <v-btn color="primary" @click="setArguments">set arguments</v-btn> 
+                </v-row>
+              </v-form>
+            </v-container>
+          </p>
           <h2 class="has-text-light">Our model</h2>
           <div v-if="forecastResult">
             <h2 class="has-text-light">Forecast Result</h2>
@@ -81,10 +118,11 @@
 
       const store = useStore(); 
       const locationSettings = store.state.locationSettings;
+      const trainArguments = store.state.trainArguments;
       const learnDateRange = store.state.learnDateRange;
       const preparedData = store.state.preparedData;
-      const columns = Object.keys(preparedData[0])
-        .filter((name) => !['id'].includes(name));
+      const columns = (preparedData && Array.isArray(preparedData) && preparedData.length) ? Object.keys(preparedData[0])
+        .filter((name) => !['id', 'date'].includes(name)) : [];
 
       const predictionSettings = ref({ 
           latitude: locationSettings.latitude || '',
@@ -92,15 +130,22 @@
           startDate: learnDateRange.startDate,
           endDate: learnDateRange.endDate,
       });
+      const predictionArguments = ref({ 
+        modelType: trainArguments.modelType || 'gru',
+        gpu: trainArguments.gpu || false,
+      });
 
       const forecastResult = ref(null);
       const isDataPrepared = ref(false);
+      const isDataLoaded = ref(false);
       const means = ref([]);
       const stddevs = ref([]);
       const normalizedData = ref([]);
+      const modelTypes = ref(['baseline', 'gru', 'simpleRNN']);
       const on = inject('socketOn');
 
       if (preparedData && Array.isArray(preparedData) > 0) {
+        // console.log('data:', data);
         isDataPrepared.value = true;
         tfvis.visor().surface({name: 'Forecast Surface', tab: 'My Tab'});
       }
@@ -109,21 +154,26 @@
         forecastResult.value = data;
       });
 
-      async function trainModel() {
+      function setArguments() {
+        const { modelType, gpu } = predictionArguments;
+        store.dispatch('setArguments', { modelType, gpu });
+      }
+
+      async function loadData() {
         tf.tidy(() => {
           means.value = [];
           stddevs.value = [];
           
           for (const columnName of columns) {
             const data = tf.tensor1d(getColumnData(columnName).slice(0, 6 * 24 * 365));
-            console.log('tf.tensor1d data:', data);
+            // console.log('tf.tensor1d data:', data);
             const moments = tf.moments(data);
             means.value.push(moments.mean.dataSync());
-            console.log('tf.moments:', moments);
+            // console.log('tf.moments:', moments);
             stddevs.value.push(Math.sqrt(moments.variance.dataSync()));
           }
-          console.log('means:', means.value);
-          console.log('stddevs:', stddevs.value);
+          // console.log('means:', means.value);
+          // console.log('stddevs:', stddevs.value);
         });
         const numRows = preparedData.length;
 
@@ -133,19 +183,23 @@
           const row = [];
           for (let j = 0; j < columns.length; ++j) {
             const columnIndex = columns.indexOf(columns[j]);
-            row.push((preparedData[i][columnIndex] - means.value[columnIndex]) / stddevs.value[columnIndex]);
+            const columnName = columns[j];
+            row.push((preparedData[i][columnName] - means.value[columnIndex]) / stddevs.value[columnIndex]);
           }
           normalizedData.value.push(row);
         }
-        console.log('normalizedData:', normalizedData.value);
+        isDataLoaded.value = true;
+        // console.log('normalizedData:', normalizedData.value);
+      }
+
+      async function trainModel() {
+        return true;
       }
 
       function getColumnData(columnName, includeTime, beginIndex, length, stride) {
-        const columnIndex = columns.indexOf(columnName);
         const numRows = preparedData.length;
 
-        console.log('columnIndex:', columnIndex);
-        console.log('columnName:', columnName);
+        // console.log('columnName:', columnName);
 
         if (!beginIndex) {
           beginIndex = 0;
@@ -157,19 +211,34 @@
           stride = 1;
         }
         const out = [];
+        /* console.log('beginIndex:', beginIndex);
+        console.log('length:', length);
+        console.log('stride:', stride); */ 
         for (let i = beginIndex; i < beginIndex + length && i < numRows;
             i += stride) {
-          let value = preparedData[i][columnIndex];
+          let value = preparedData[i][columnName];
           if (includeTime) {
             value = {x: this.dateTime[i].getTime(), y: value};
           }
           out.push(value);
         }
-        console.log('out:', out.length);
+        // console.log('out:', out);
         return out;
       }
   
-      return { forecastResult, predictionSettings, isDataPrepared, trainModel, getColumnData, normalizedData };
+      return { 
+        forecastResult,
+        predictionSettings,
+        isDataPrepared,
+        isDataLoaded,
+        trainModel,
+        loadData,
+        getColumnData,
+        normalizedData,
+        predictionArguments, 
+        modelTypes,
+        setArguments
+      };
     },
 
   };
