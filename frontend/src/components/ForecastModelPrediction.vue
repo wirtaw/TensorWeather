@@ -32,11 +32,13 @@
                     label="'model type'"
                     :items="modelTypes"
                     >
-                      <v-tooltip
-                        location="end"
-                        activator="parent">
-                        Type of the model to train. Use 'baseline' to compute the commonsense baseline prediction error.
-                      </v-tooltip>
+                      <template v-slot:append>
+                        <v-tooltip
+                          location="end"
+                          activator="parent">
+                          Type of the model to train. Use 'baseline' to compute the commonsense baseline prediction error.
+                        </v-tooltip>
+                      </template>
                     </v-select>
                   </v-col>
                 </v-row>
@@ -52,6 +54,66 @@
                 <v-row>
                   <v-col cols="12" md="6">
                     
+                  </v-col>
+                </v-row>
+                <v-row>
+                  <v-col cols="12" md="6">
+                    <v-slider 
+                    v-model="predictionArguments.lookBack" 
+                    label="lookBack"
+                    :max="lookBackMax"
+                    :min="lookBackMin"
+                    class="align-center"
+                    show-ticks="always"
+                    step="1"
+                    tick-size="100"
+                    >
+                    <template v-slot:append>
+                      <v-text-field
+                        v-model="predictionArguments.lookBack"
+                        density="compact"
+                        style="width: 70px"
+                        type="number"
+                        hide-details
+                        single-line
+                      ></v-text-field>
+                      <v-tooltip
+                        location="end"
+                        activator="parent">
+                        Look-back period (# of rows) for generating features
+                      </v-tooltip>
+                    </template>
+                    </v-slider>
+                  </v-col>
+                </v-row>
+                <v-row>
+                  <v-col cols="12" md="6">
+                    <v-slider 
+                    v-model="predictionArguments.step" 
+                    label="step"
+                    :max="stepMax"
+                    :min="stepMin"
+                    class="align-center"
+                    show-ticks="always"
+                    step="1"
+                    tick-size="1"
+                    >
+                    <template v-slot:append>
+                      <v-text-field
+                        v-model="predictionArguments.step"
+                        density="compact"
+                        style="width: 70px"
+                        type="number"
+                        hide-details
+                        single-line
+                      ></v-text-field>
+                      <v-tooltip
+                        location="end"
+                        activator="parent">
+                        Step size (# of rows) used for generating features
+                      </v-tooltip>
+                    </template>
+                    </v-slider>
                   </v-col>
                 </v-row>
                 <v-row class="flex-direction is-align-self-center">
@@ -133,6 +195,16 @@
       const predictionArguments = ref({ 
         modelType: trainArguments.modelType || 'gru',
         gpu: trainArguments.gpu || false,
+        lookBack: trainArguments.lookBack || 10 * 24 * 6,
+        step: trainArguments.step || 6,
+        delay: trainArguments.delay || 24 * 6,
+        normalize: trainArguments.normalize || true,
+        includeDateTime: trainArguments.includeDateTime || false,
+        batchSize: trainArguments.batchSize || 128,
+        epochs: trainArguments.epochs || 20,
+        earlyStoppingPatience: trainArguments.earlyStoppingPatience || 2,
+        logDir: trainArguments.logDir || '',
+        logUpdateFreq: trainArguments.logUpdateFreq || 'batch'
       });
 
       const forecastResult = ref(null);
@@ -142,6 +214,10 @@
       const stddevs = ref([]);
       const normalizedData = ref([]);
       const modelTypes = ref(['baseline', 'gru', 'simpleRNN']);
+      const lookBackMax = ref(1000 * 24 * 6);
+      const lookBackMin = ref(10 * 24 * 6);
+      const stepMax = ref(10);
+      const stepMin = ref(1);
       const on = inject('socketOn');
 
       if (preparedData && Array.isArray(preparedData) > 0) {
@@ -155,8 +231,33 @@
       });
 
       function setArguments() {
-        const { modelType, gpu } = predictionArguments;
-        store.dispatch('setArguments', { modelType, gpu });
+        const { modelType, 
+          gpu, 
+          lookBack, 
+          step, 
+          delay, 
+          normalize, 
+          includeDateTime, 
+          batchSize,
+          epochs,
+          earlyStoppingPatience,
+          logDir,
+          logUpdateFreq
+        } = predictionArguments;
+        store.dispatch('setArguments', { 
+          modelType, 
+          gpu, 
+          lookBack,
+          step,
+          delay,
+          normalize,
+          includeDateTime,
+          batchSize,
+          epochs,
+          earlyStoppingPatience,
+          logDir,
+          logUpdateFreq
+        });
       }
 
       async function loadData() {
@@ -237,7 +338,11 @@
         normalizedData,
         predictionArguments, 
         modelTypes,
-        setArguments
+        setArguments,
+        lookBackMax,
+        lookBackMin,
+        stepMax,
+        stepMin
       };
     },
 

@@ -19,6 +19,16 @@ export default createStore({
     trainArguments: {
       modelType: null,
       gpu: false,
+      lookBack: 10 * 24 * 6,
+      step: 6,
+      delay: 144,
+      normalize: true,
+      includeDateTime: false,
+      batchSize: 128,
+      epochs: 20,
+      earlyStoppingPatience: 2,
+      logDir: '',
+      logUpdateFreq: null
     }
   },
   mutations: {
