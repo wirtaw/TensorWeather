@@ -16,7 +16,7 @@
               <v-form>
                 <v-row class="flex-direction is-align-self-center">
                   <v-btn color="primary" @click="loadData">load</v-btn>
-                  <v-btn color="primary" :disabled="!isDataLoaded" @click="trainModel">train</v-btn>
+                  <v-btn color="primary" :disabled="!isDataLoaded" @click="runBuildAndTrainModel">train</v-btn>
                 </v-row>
               </v-form>
             </v-container>
@@ -72,7 +72,6 @@
                       <v-text-field
                         v-model="predictionArguments.lookBack"
                         density="compact"
-                        style="width: 70px"
                         type="number"
                         hide-details
                         single-line
@@ -161,6 +160,11 @@
   import { useStore } from 'vuex';
   import * as tf from '@tensorflow/tfjs';
   import * as tfvis from '@tensorflow/tfjs-vis';
+  import * as tfnGPU from '@tensorflow/tfjs-node-gpu';
+  import * as tfnNode from '@tensorflow/tfjs-node';
+
+  import { WeatherData } from '../helper/weatherData.ts';
+  import { buildModel, trainModel } from '../helper/models.ts';
   
   export default {
     data() {
@@ -207,23 +211,29 @@
         logUpdateFreq: trainArguments.logUpdateFreq || 'batch'
       });
 
+      const tfn = ref(null);
       const forecastResult = ref(null);
       const isDataPrepared = ref(false);
       const isDataLoaded = ref(false);
-      const means = ref([]);
-      const stddevs = ref([]);
       const normalizedData = ref([]);
       const modelTypes = ref(['baseline', 'gru', 'simpleRNN']);
       const lookBackMax = ref(1000 * 24 * 6);
       const lookBackMin = ref(10 * 24 * 6);
       const stepMax = ref(10);
       const stepMin = ref(1);
+      const weatherData = ref(new WeatherData());
       const on = inject('socketOn');
 
       if (preparedData && Array.isArray(preparedData) > 0) {
         // console.log('data:', data);
         isDataPrepared.value = true;
         tfvis.visor().surface({name: 'Forecast Surface', tab: 'My Tab'});
+      }
+
+      if (predictionArguments.value.gpu) {
+        tfn.value = tfnGPU;
+      } else {
+        tfn.value = tfnNode;
       }
 
       on('forecast_request_done', (data) => {
@@ -244,6 +254,11 @@
           logDir,
           logUpdateFreq
         } = predictionArguments;
+        if (gpu) {
+          tfn.value = tfnGPU;
+        } else {
+          tfn.value = tfnNode;
+        }
         store.dispatch('setArguments', { 
           modelType, 
           gpu, 
@@ -261,80 +276,63 @@
       }
 
       async function loadData() {
-        tf.tidy(() => {
-          means.value = [];
-          stddevs.value = [];
-          
-          for (const columnName of columns) {
-            const data = tf.tensor1d(getColumnData(columnName).slice(0, 6 * 24 * 365));
-            // console.log('tf.tensor1d data:', data);
-            const moments = tf.moments(data);
-            means.value.push(moments.mean.dataSync());
-            // console.log('tf.moments:', moments);
-            stddevs.value.push(Math.sqrt(moments.variance.dataSync()));
-          }
-          // console.log('means:', means.value);
-          // console.log('stddevs:', stddevs.value);
-        });
-        const numRows = preparedData.length;
-
-        // Cache normalized values.
-        normalizedData.value = [];
-        for (let i = 0; i < numRows; ++i) {
-          const row = [];
-          for (let j = 0; j < columns.length; ++j) {
-            const columnIndex = columns.indexOf(columns[j]);
-            const columnName = columns[j];
-            row.push((preparedData[i][columnName] - means.value[columnIndex]) / stddevs.value[columnIndex]);
-          }
-          normalizedData.value.push(row);
-        }
+        await weatherData.value.loadData(preparedData);
+        
         isDataLoaded.value = true;
         // console.log('normalizedData:', normalizedData.value);
       }
 
-      async function trainModel() {
-        return true;
-      }
+      async function runBuildAndTrainModel() {
+        let numFeatures = columns.length;
+        const { modelType, 
+          lookBack, 
+          step, 
+          delay, 
+          normalize, 
+          includeDateTime, 
+          batchSize,
+          epochs,
+          earlyStoppingPatience,
+          logDir,
+          logUpdateFreq
+        } = predictionArguments;
+        const model = buildModel(modelType, Math.floor(lookBack / step), numFeatures);
 
-      function getColumnData(columnName, includeTime, beginIndex, length, stride) {
-        const numRows = preparedData.length;
-
-        // console.log('columnName:', columnName);
-
-        if (!beginIndex) {
-          beginIndex = 0;
-        }
-        if (!length) {
-          length = numRows - beginIndex;
-        }
-        if (!stride) {
-          stride = 1;
-        }
-        const out = [];
-        /* console.log('beginIndex:', beginIndex);
-        console.log('length:', length);
-        console.log('stride:', stride); */ 
-        for (let i = beginIndex; i < beginIndex + length && i < numRows;
-            i += stride) {
-          let value = preparedData[i][columnName];
-          if (includeTime) {
-            value = {x: this.dateTime[i].getTime(), y: value};
+          let callback = [];
+          if (logDir !== null) {
+            console.log(
+                `Logging to tensorboard. ` +
+                `Use the command below to bring up tensorboard server:\n` +
+                `  tensorboard --logdir ${logDir}`);
+            callback.push(tfn.value.node.tensorBoard(logDir, {
+              updateFreq: logUpdateFreq
+            }));
           }
-          out.push(value);
-        }
-        // console.log('out:', out);
-        return out;
+          if (earlyStoppingPatience !== null) {
+            console.log(
+                `Using earlyStoppingCallback with patience ` +
+                `${earlyStoppingPatience}.`);
+            callback.push(tfn.value.callbacks.earlyStopping({
+              patience: earlyStoppingPatience
+            }));
+          }
+
+          await trainModel(
+              model, weatherData.value, normalize, includeDateTime,
+              lookBack, step, delay, batchSize, epochs,
+              callback);
+
+        return true;
       }
   
       return { 
+        tfn,
         forecastResult,
         predictionSettings,
         isDataPrepared,
         isDataLoaded,
-        trainModel,
+        runBuildAndTrainModel,
         loadData,
-        getColumnData,
         normalizedData,
         predictionArguments, 
         modelTypes,
@@ -342,7 +340,8 @@
         lookBackMax,
         lookBackMin,
         stepMax,
-        stepMin
+        stepMin,
+        weatherData
       };
     },
 
