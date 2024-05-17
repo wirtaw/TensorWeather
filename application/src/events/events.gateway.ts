@@ -12,6 +12,7 @@ import { OpenweatherService } from '../openweather/openweather.service';
 import {
   Coordinates,
   WeatherData,
+  WeatherDataNormalized,
 } from '../openweather/interfaces/openweather.interfaces';
 import { DataProcessingService } from '../data-processing/data-processing.service';
 
@@ -125,14 +126,13 @@ export class EventsGateway
     // this.logger.log(`Forecast data processing`, payload);
     try {
       const { latitude, longitude, startDate, endDate } = payload;
-      const reponse: boolean = await this.dataProcessingService.cleanAndProcess(
-        {
+      const reponse: WeatherDataNormalized[] | any =
+        await this.dataProcessingService.cleanAndProcess({
           lat: latitude,
           lon: longitude,
           startDate,
           endDate,
-        },
-      );
+        });
       client.emit('forecast_processing_data_request_done', reponse);
     } catch (e) {
       this.logger.error(`Forecast summary error `, e?.message.toString() || '');

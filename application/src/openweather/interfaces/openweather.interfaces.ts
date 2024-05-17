@@ -37,3 +37,19 @@ export interface WeatherData {
     };
   };
 }
+
+export interface WeatherDataNormalized {
+  id: string;
+  date: string;
+  cloud_cover: number;
+  humidity: number;
+  precipitation: number;
+  pressure: number;
+  temperature_min: number;
+  temperature_max: number;
+  temperature_1: number;
+  temperature_2: number;
+  temperature_3: number;
+  temperature_4: number;
+  wind: number;
+}

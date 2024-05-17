@@ -5,11 +5,16 @@ import { DateTime, Settings } from 'luxon';
 import { LevelDbService } from '../level-dbservice/level-dbservice.service';
 import { ProcessingOptions } from './interfaces/data-processing.interfaces';
 import { AppConfig } from '../config/app/app.config';
-import { WeatherData } from '../openweather/interfaces/openweather.interfaces';
+import {
+  WeatherData,
+  WeatherDataNormalized,
+} from '../openweather/interfaces/openweather.interfaces';
+import { TrainArguments } from './interfaces/train-arguments.interfaces';
 
 @Injectable()
 export class DataProcessingService {
   private appConfig: AppConfig;
+  private trainArguments: TrainArguments;
   private readonly logger = new Logger(DataProcessingService.name);
 
   constructor(
@@ -17,9 +22,25 @@ export class DataProcessingService {
     private readonly levelDBService: LevelDbService,
   ) {
     this.appConfig = this.configService.get<AppConfig>('app');
+    this.trainArguments = {
+      modelType: null,
+      gpu: false,
+      lookBack: 10 * 24 * 6,
+      step: 6,
+      delay: 144,
+      normalize: true,
+      includeDateTime: false,
+      batchSize: 128,
+      epochs: 20,
+      earlyStoppingPatience: 2,
+      logDir: '',
+      logUpdateFreq: null,
+    };
   }
 
-  async cleanAndProcess(options: ProcessingOptions): Promise<any> {
+  async cleanAndProcess(
+    options: ProcessingOptions,
+  ): Promise<WeatherDataNormalized[]> {
     const { timeZone, syncHour } = this.appConfig;
     const { startDate, endDate, lat: latitude, lon: longitude } = options;
     const rawData: WeatherData[] = [];
@@ -128,7 +149,7 @@ export class DataProcessingService {
       id: ['id'],
     });
 
-    const processedData = R.map(
+    const processedData: WeatherDataNormalized[] | any = R.map(
       myExtract,
       R.pipe(
         filterByTemperature,
@@ -141,4 +162,6 @@ export class DataProcessingService {
 
     return processedData;
   }
+
+  async createModel() {}
 }
