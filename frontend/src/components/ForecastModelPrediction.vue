@@ -160,11 +160,11 @@
   import { useStore } from 'vuex';
   import * as tf from '@tensorflow/tfjs';
   import * as tfvis from '@tensorflow/tfjs-vis';
-  import * as tfnGPU from '@tensorflow/tfjs-node-gpu';
-  import * as tfnNode from '@tensorflow/tfjs-node';
+  /* import * as tfnGPU from '@tensorflow/tfjs-node-gpu';
+  import * as tfnNode from '@tensorflow/tfjs-node'; */
 
   import { WeatherData } from '../helper/weatherData.ts';
-  import { buildModel, trainModel } from '../helper/models.ts';
+  // import { buildModel, trainModel } from '../helper/models.ts';
   
   export default {
     data() {
@@ -187,8 +187,8 @@
       const trainArguments = store.state.trainArguments;
       const learnDateRange = store.state.learnDateRange;
       const preparedData = store.state.preparedData;
-      const columns = (preparedData && Array.isArray(preparedData) && preparedData.length) ? Object.keys(preparedData[0])
-        .filter((name) => !['id', 'date'].includes(name)) : [];
+      //const columns = (preparedData && Array.isArray(preparedData) && preparedData.length) ? Object.keys(preparedData[0])
+      //  .filter((name) => !['id', 'date'].includes(name)) : [];
 
       const predictionSettings = ref({ 
           latitude: locationSettings.latitude || '',
@@ -223,6 +223,7 @@
       const stepMin = ref(1);
       const weatherData = ref(new WeatherData());
       const on = inject('socketOn');
+      const emit = inject('socketEmit');
 
       if (preparedData && Array.isArray(preparedData) > 0) {
         // console.log('data:', data);
@@ -230,11 +231,11 @@
         tfvis.visor().surface({name: 'Forecast Surface', tab: 'My Tab'});
       }
 
-      if (predictionArguments.value.gpu) {
+      /*if (predictionArguments.value.gpu) {
         tfn.value = tfnGPU;
       } else {
         tfn.value = tfnNode;
-      }
+      }*/
 
       on('forecast_request_done', (data) => {
         forecastResult.value = data;
@@ -254,11 +255,7 @@
           logDir,
           logUpdateFreq
         } = predictionArguments;
-        if (gpu) {
-          tfn.value = tfnGPU;
-        } else {
-          tfn.value = tfnNode;
-        }
+
         store.dispatch('setArguments', { 
           modelType, 
           gpu, 
@@ -283,7 +280,7 @@
       }
 
       async function runBuildAndTrainModel() {
-        let numFeatures = columns.length;
+        // let numFeatures = columns.length;
         const { modelType, 
           lookBack, 
           step, 
@@ -296,7 +293,21 @@
           logDir,
           logUpdateFreq
         } = predictionArguments;
-        const model = buildModel(modelType, Math.floor(lookBack / step), numFeatures);
+
+        emit('forecast_build_model_request', {
+          modelType, 
+          lookBack, 
+          step, 
+          delay, 
+          normalize, 
+          includeDateTime, 
+          batchSize,
+          epochs,
+          earlyStoppingPatience,
+          logDir,
+          logUpdateFreq
+        });
+        /*const model = buildModel(modelType, Math.floor(lookBack / step), numFeatures);
 
           let callback = [];
           if (logDir !== null) {
@@ -320,7 +331,7 @@
           await trainModel(
               model, weatherData.value, normalize, includeDateTime,
               lookBack, step, delay, batchSize, epochs,
-              callback);
+              callback);*/
 
         return true;
       }

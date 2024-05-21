@@ -9,8 +9,6 @@
   },
   "dependencies": {
     "@tensorflow/tfjs": "^4.19.0",
-    "@tensorflow/tfjs-node": "^4.19.0",
-    "@tensorflow/tfjs-node-gpu": "^4.19.0",
     "@tensorflow/tfjs-vis": "^1.5.1",
     "bulma": "^1.0.0",
     "chart.js": "^4.4.2",
