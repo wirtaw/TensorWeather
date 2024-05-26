@@ -163,5 +163,11 @@ export class DataProcessingService {
     return processedData;
   }
 
-  async createModel() {}
+  async createModel(train: TrainArguments): Promise<any> {
+    this.logger.log(` train model ${train.modelType}`);
+    this.trainArguments = {...train};
+
+
+    return true;
+  }
 }

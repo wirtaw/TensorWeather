@@ -135,8 +135,51 @@ export class EventsGateway
         });
       client.emit('forecast_processing_data_request_done', reponse);
     } catch (e) {
-      this.logger.error(`Forecast summary error `, e?.message.toString() || '');
+      this.logger.error(`Forecast porcessing data summary error `, e?.message.toString() || '');
       client.emit('forecast_processing_data_request_failed', {
+        message: e?.message.toString() || '',
+      });
+    }
+  }
+
+  @SubscribeMessage('forecast_build_model_request')
+  async handleForecastBuildModelRequest(
+    client: Server,
+    payload: any,
+  ): Promise<void> {
+    // this.logger.log(`Forecast build model`, payload);
+    try {
+      const { 
+        modelType, 
+        lookBack, 
+        step, 
+        delay, 
+        normalize, 
+        includeDateTime, 
+        batchSize,
+        epochs,
+        earlyStoppingPatience,
+        logDir,
+        logUpdateFreq } = payload;
+      const reponse: any =
+        await this.dataProcessingService.createModel({
+          modelType, 
+          gpu: false,
+          lookBack, 
+          step, 
+          delay, 
+          normalize, 
+          includeDateTime, 
+          batchSize,
+          epochs,
+          earlyStoppingPatience,
+          logDir,
+          logUpdateFreq
+        });
+      client.emit('forecast_build_model_request_done', reponse);
+    } catch (e) {
+      this.logger.error(`Forecast build model error `, e?.message.toString() || '');
+      client.emit('forecast_build_model_request_failed', {
         message: e?.message.toString() || '',
       });
     }
