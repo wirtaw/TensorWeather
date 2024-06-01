@@ -160,8 +160,6 @@
   import { useStore } from 'vuex';
   import * as tf from '@tensorflow/tfjs';
   import * as tfvis from '@tensorflow/tfjs-vis';
-  /* import * as tfnGPU from '@tensorflow/tfjs-node-gpu';
-  import * as tfnNode from '@tensorflow/tfjs-node'; */
 
   import { WeatherData } from '../helper/weatherData.ts';
   // import { buildModel, trainModel } from '../helper/models.ts';
@@ -231,12 +229,6 @@
         tfvis.visor().surface({name: 'Forecast Surface', tab: 'My Tab'});
       }
 
-      /*if (predictionArguments.value.gpu) {
-        tfn.value = tfnGPU;
-      } else {
-        tfn.value = tfnNode;
-      }*/
-
       on('forecast_request_done', (data) => {
         forecastResult.value = data;
       });
@@ -280,7 +272,7 @@
       }
 
       async function runBuildAndTrainModel() {
-        // let numFeatures = columns.length;
+        let numFeatures = columns.length;
         const { modelType, 
           lookBack, 
           step, 
@@ -305,29 +297,10 @@
           epochs,
           earlyStoppingPatience,
           logDir,
-          logUpdateFreq
+          logUpdateFreq,
+          numFeatures
         });
-        /*const model = buildModel(modelType, Math.floor(lookBack / step), numFeatures);
-
-          let callback = [];
-          if (logDir !== null) {
-            console.log(
-                `Logging to tensorboard. ` +
-                `Use the command below to bring up tensorboard server:\n` +
-                `  tensorboard --logdir ${logDir}`);
-            callback.push(tfn.value.node.tensorBoard(logDir, {
-              updateFreq: logUpdateFreq
-            }));
-          }
-          if (earlyStoppingPatience !== null) {
-            console.log(
-                `Using earlyStoppingCallback with patience ` +
-                `${earlyStoppingPatience}.`);
-            callback.push(tfn.value.callbacks.earlyStopping({
-              patience: earlyStoppingPatience
-            }));
-          }
-
+        /*
           await trainModel(
               model, weatherData.value, normalize, includeDateTime,
               lookBack, step, delay, batchSize, epochs,

@@ -160,7 +160,8 @@ export class EventsGateway
         epochs,
         earlyStoppingPatience,
         logDir,
-        logUpdateFreq } = payload;
+        logUpdateFreq,
+        numFeatures } = payload;
       const reponse: any =
         await this.dataProcessingService.createModel({
           modelType, 
@@ -175,7 +176,7 @@ export class EventsGateway
           earlyStoppingPatience,
           logDir,
           logUpdateFreq
-        });
+        }, numFeatures);
       client.emit('forecast_build_model_request_done', reponse);
     } catch (e) {
       this.logger.error(`Forecast build model error `, e?.message.toString() || '');
