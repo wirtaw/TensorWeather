@@ -135,7 +135,10 @@ export class EventsGateway
         });
       client.emit('forecast_processing_data_request_done', reponse);
     } catch (e) {
-      this.logger.error(`Forecast porcessing data summary error `, e?.message.toString() || '');
+      this.logger.error(
+        `Forecast porcessing data summary error `,
+        e?.message.toString() || '',
+      );
       client.emit('forecast_processing_data_request_failed', {
         message: e?.message.toString() || '',
       });
@@ -149,37 +152,43 @@ export class EventsGateway
   ): Promise<void> {
     // this.logger.log(`Forecast build model`, payload);
     try {
-      const { 
-        modelType, 
-        lookBack, 
-        step, 
-        delay, 
-        normalize, 
-        includeDateTime, 
+      const {
+        modelType,
+        lookBack,
+        step,
+        delay,
+        normalize,
+        includeDateTime,
         batchSize,
         epochs,
         earlyStoppingPatience,
         logDir,
         logUpdateFreq,
-        numFeatures } = payload;
-      const reponse: any =
-        await this.dataProcessingService.createModel({
-          modelType, 
+        numFeatures,
+      } = payload;
+      const reponse: any = await this.dataProcessingService.createModel(
+        {
+          modelType,
           gpu: false,
-          lookBack, 
-          step, 
-          delay, 
-          normalize, 
-          includeDateTime, 
+          lookBack,
+          step,
+          delay,
+          normalize,
+          includeDateTime,
           batchSize,
           epochs,
           earlyStoppingPatience,
           logDir,
-          logUpdateFreq
-        }, numFeatures);
+          logUpdateFreq,
+        },
+        numFeatures,
+      );
       client.emit('forecast_build_model_request_done', reponse);
     } catch (e) {
-      this.logger.error(`Forecast build model error `, e?.message.toString() || '');
+      this.logger.error(
+        `Forecast build model error `,
+        e?.message.toString() || '',
+      );
       client.emit('forecast_build_model_request_failed', {
         message: e?.message.toString() || '',
       });
