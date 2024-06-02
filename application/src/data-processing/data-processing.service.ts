@@ -238,10 +238,10 @@ buildLinearRegressionModel(inputShape) {
 * Build a GRU model for the temperature-prediction problem.
 *
 * @param {tf.Shape} inputShape Input shape (without the batch dimenson).
-* @param {tf.regularizer.Regularizer} kernelRegularizer An optional
+* @param {tf.regularizer.Regularizer | null} kernelRegularizer An optional
 *   regularizer for the kernel of the first (hdiden) dense layer of the MLP.
 *   If not specified, no weight regularization will be included in the MLP.
-* @param {number} dropoutRate Dropout rate of an optional dropout layer
+* @param {number | null} dropoutRate Dropout rate of an optional dropout layer
 *   inserted between the two dense layers of the MLP. Optional. If not
 *   specified, no dropout layers will be included in the MLP.
 * @returns {tf.LayersModel} A TensorFlow.js tf.LayersModel instance.

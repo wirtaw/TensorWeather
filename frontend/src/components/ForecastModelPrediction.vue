@@ -272,7 +272,7 @@
       }
 
       async function runBuildAndTrainModel() {
-        let numFeatures = columns.length;
+        let numFeatures = weatherData.value.columns.length;
         const { modelType, 
           lookBack, 
           step, 
