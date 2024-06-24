@@ -221,4 +221,24 @@ export class EventsGateway
       });
     }
   }
+
+  @SubscribeMessage('forecast_train_model_request')
+  async handleTrainModelRequest(
+    client: Server
+  ): Promise<void> {
+    // this.logger.log(`Forecast train model`, payload);
+    try {
+
+      const reponse: any = await this.dataProcessingService.trainModel();
+      client.emit('forecast_train_model_request_done', reponse);
+    } catch (e) {
+      this.logger.error(
+        `Forecast model train error `,
+        e?.message.toString() || '',
+      );
+      client.emit('forecast_prepare_data_load_request_failed', {
+        message: e?.message.toString() || '',
+      });
+    }
+  }
 }

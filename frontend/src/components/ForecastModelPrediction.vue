@@ -16,9 +16,13 @@
               <v-form>
                 <v-row class="flex-direction is-align-self-center">
                   <v-btn color="primary" @click="loadData">load</v-btn>
-                  <v-btn color="primary" :disabled="!isDataLoaded" @click="runBuildAndTrainModel">train</v-btn>
+                  <v-btn color="primary" :disabled="!isDataLoaded" @click="runBuildModel">build</v-btn>
+                  <v-btn color="primary" :disabled="!isModelBuilded" @click="runTrainModel">train</v-btn>
                 </v-row>
               </v-form>
+            </v-container>
+            <v-container class="form-container is-flex is-justify-content-center" id="completeForm" v-if="isModelTrained">
+              <p class="has-text-primary">Model trained</p>
             </v-container>
             <span class="buttons is-flex is-justify-content-center">
               <router-link class="button" to="/prepare" v-if="!isDataPrepared">Prepare data</router-link>
@@ -195,12 +199,12 @@
         modelType: trainArguments.modelType || 'gru',
         gpu: trainArguments.gpu || false,
         lookBack: trainArguments.lookBack || 10 * 24 * 6,
-        step: trainArguments.step || 6,
+        step: trainArguments.step || 5,
         delay: trainArguments.delay || 24 * 6,
         normalize: trainArguments.normalize || true,
         includeDateTime: trainArguments.includeDateTime || false,
         batchSize: trainArguments.batchSize || 128,
-        epochs: trainArguments.epochs || 20,
+        epochs: trainArguments.epochs || 10,
         earlyStoppingPatience: trainArguments.earlyStoppingPatience || 2,
         logDir: trainArguments.logDir || '',
         logUpdateFreq: trainArguments.logUpdateFreq || 'batch'
@@ -209,6 +213,8 @@
       const forecastResult = ref(null);
       const isDataPrepared = ref(false);
       const isDataLoaded = ref(false);
+      const isModelBuilded = ref(false);
+      const isModelTrained = ref(false);
       const normalizedData = ref([]);
       const modelTypes = ref(['baseline', 'gru', 'simpleRNN']);
       const lookBackMax = ref(1000 * 24 * 6);
@@ -242,7 +248,7 @@
           earlyStoppingPatience,
           logDir,
           logUpdateFreq
-        } = predictionArguments;
+        } = predictionArguments.value;
 
         store.dispatch('setArguments', { 
           modelType, 
@@ -271,7 +277,7 @@
         isDataLoaded.value = true;
       });
 
-      async function runBuildAndTrainModel() {
+      async function runBuildModel() {
         let numFeatures = normalizedData.value[0].length;
         const { modelType, 
           lookBack, 
@@ -284,7 +290,7 @@
           earlyStoppingPatience,
           logDir,
           logUpdateFreq
-        } = predictionArguments;
+        } = predictionArguments.value;
 
         emit('forecast_build_model_request', {
           modelType, 
@@ -300,21 +306,34 @@
           logUpdateFreq,
           numFeatures
         });
-        /*
-          await trainModel(
-              model, weatherData.value, normalize, includeDateTime,
-              lookBack, step, delay, batchSize, epochs,
-              callback);*/
 
         return true;
       }
+
+      on('forecast_build_model_request_done', () => {
+        isModelBuilded.value = true;
+      });
+
+      async function runTrainModel() {
+
+        emit('forecast_train_model_request', {});
+
+        return true;
+      }
+
+      on('forecast_train_model_request_done', () => {
+        isModelTrained.value = true;
+      });
   
       return { 
         forecastResult,
         predictionSettings,
         isDataPrepared,
         isDataLoaded,
-        runBuildAndTrainModel,
+        isModelBuilded,
+        isModelTrained,
+        runBuildModel,
+        runTrainModel,
         loadData,
         normalizedData,
         predictionArguments, 

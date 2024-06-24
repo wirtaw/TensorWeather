@@ -17,6 +17,11 @@ import { TrainArguments } from './interfaces/train-arguments.interfaces';
 const VAL_MIN_ROW = 200001;
 const VAL_MAX_ROW = 300000;
 
+const TRAIN_MIN_ROW = 0;
+const TRAIN_MAX_ROW = 200000;
+
+const NUM_BATCHES_PER_EPOCH = 500;
+
 @Injectable()
 export class DataProcessingService {
   private appConfig: AppConfig;
@@ -378,6 +383,7 @@ export class DataProcessingService {
   }
 
   async createModel(train: TrainArguments, numFeatures: number): Promise<any> {
+    this.logger.log(` train  ${JSON.stringify(train)}`);
     this.logger.log(` train model ${train.modelType}`);
     this.trainArguments = { ...train };
 
@@ -508,5 +514,109 @@ export class DataProcessingService {
     await this.calculateMeansAndStddevs_();
 
     return this.normalizedData;
+  }
+
+  async getNextBatchFunction(shuffle, lookBack, delay, batchSize, step, minIndex, maxIndex, normalize,
+    includeDateTime) {
+      let startIndex = minIndex + lookBack;
+      const lookBackSlices = Math.floor(lookBack / step);
+
+      return {
+        next: () => {
+          const rowIndices = [];
+          let done = false;  // Indicates whether the dataset has ended.
+          if (shuffle) {
+            // If `shuffle` is `true`, start from randomly chosen rows.
+            const range = maxIndex - (minIndex + lookBack);
+            for (let i = 0; i < batchSize; ++i) {
+              const row = minIndex + lookBack + Math.floor(Math.random() * range);
+              rowIndices.push(row);
+            }
+          } else {
+            // If `shuffle` is `false`, the starting row indices will be sequential.
+            let r = startIndex;
+            for (; r < startIndex + batchSize && r < maxIndex; ++r) {
+              rowIndices.push(r);
+            }
+            if (r >= maxIndex) {
+              done = true;
+            }
+          }
+
+          const numExamples = rowIndices.length;
+          startIndex += numExamples;
+
+          const featureLength =
+              includeDateTime ? this.numColumns + 2 : this.numColumns;
+          const samples = tf.buffer([numExamples, lookBackSlices, featureLength]);
+          const targets = tf.buffer([numExamples, 1]);
+          // Iterate over examples. Each example contains a number of rows.
+          for (let j = 0; j < numExamples; ++j) {
+            const rowIndex = rowIndices[j];
+            let exampleRow = 0;
+            // Iterate over rows in the example.
+            for (let r = rowIndex - lookBack; r < rowIndex; r += step) {
+              let exampleCol = 0;
+              // Iterate over features in the row.
+              for (let n = 0; n < featureLength; ++n) {
+                let value;
+                if (n < this.numColumns) {
+                  value = normalize ? this.normalizedData[r][n] : this.data[r][n];
+                } else if (n === this.numColumns) {
+                  // Normalized day-of-the-year feature.
+                  value = this.normalizedDayOfYear[r];
+                } else {
+                  // Normalized time-of-the-day feature.
+                  value = this.normalizedTimeOfDay[r];
+                }
+                samples.set(value, j, exampleRow, exampleCol++);
+              }
+
+              const value = normalize ?
+                  this.normalizedData[r + delay][this.tempCol] :
+                  this.data[r + delay][this.tempCol];
+              targets.set(value, j, 0);
+              exampleRow++;
+            }
+          }
+          return {
+            value: {xs: samples.toTensor(), ys: targets.toTensor()},
+            done
+          };
+        }
+      };
+  }
+
+  async customCallback() {
+    return tf.Callback;
+  }
+
+  async trainModel() {
+    if (!this.normalizedData && !this.model) {
+      throw new Error('No model to train or nomalized data');
+    }
+
+    const { lookBack, delay, batchSize, step, normalize, includeDateTime, epochs } = this.trainArguments;
+
+    const trainShuffle = true;
+    const trainDataset =
+        tf.data
+            .generator(
+                () => this.getNextBatchFunction(
+                    trainShuffle, lookBack, delay, batchSize, step, TRAIN_MIN_ROW,
+                    TRAIN_MAX_ROW, normalize, includeDateTime))
+            .prefetch(8);
+    const evalShuffle = false;
+    const valDataset = tf.data.generator(
+        () => this.getNextBatchFunction(
+            evalShuffle, lookBack, delay, batchSize, step, VAL_MIN_ROW,
+            VAL_MAX_ROW, normalize, includeDateTime));
+
+    await this.model.fitDataset(trainDataset, {
+      batchesPerEpoch: NUM_BATCHES_PER_EPOCH,
+      epochs,
+      callbacks: this.customCallback,
+      validationData: valDataset
+    });
   }
 }
