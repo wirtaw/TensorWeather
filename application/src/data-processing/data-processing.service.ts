@@ -25,6 +25,18 @@ export class DataProcessingService {
   private model;
   private dataset;
   private readonly logger = new Logger(DataProcessingService.name);
+  private columns;
+  private dateTime;
+  private data;
+  private normalizedDayOfYear;
+  private normalizedTimeOfDay;
+  private numRows;
+  private numColumns;
+  private numColumnsExcludingTarget;
+  private means;
+  private stddevs;
+  private normalizedData;
+  private tempCol;
 
   constructor(
     private configService: ConfigService,
@@ -45,6 +57,19 @@ export class DataProcessingService {
       logDir: '',
       logUpdateFreq: null,
     };
+
+    this.columns = [];
+    this.dateTime = [];
+    this.data = [];
+    this.normalizedDayOfYear = [];
+    this.normalizedTimeOfDay = [];
+    this.numRows = 0;
+    this.numColumns = 0;
+    this.numColumnsExcludingTarget = 0;
+    this.means = [];
+    this.stddevs = [];
+    this.normalizedData = [];
+    this.tempCol = -1;
   }
 
   async cleanAndProcess(
@@ -326,7 +351,7 @@ export class DataProcessingService {
   buildModel(modelType, numTimeSteps, numFeatures) {
     const inputShape = [numTimeSteps, numFeatures];
 
-    console.log(`modelType = ${modelType}`);
+    this.logger.log(`modelType = ${modelType}`);
     let model;
     if (modelType === 'mlp') {
       model = this.buildMLPModel(inputShape);
@@ -371,7 +396,7 @@ export class DataProcessingService {
 
     const callback = [];
     if (this.trainArguments.logDir !== null) {
-      console.log(
+      this.logger.log(
         `Logging to tensorboard. ` +
           `Use the command below to bring up tensorboard server:\n` +
           `  tensorboard --logdir ${this.trainArguments.logDir}`,
@@ -383,7 +408,7 @@ export class DataProcessingService {
       );
     }
     if (this.trainArguments.earlyStoppingPatience !== null) {
-      console.log(
+      this.logger.log(
         `Using earlyStoppingCallback with patience ` +
           `${this.trainArguments.earlyStoppingPatience}.`,
       );
@@ -395,5 +420,93 @@ export class DataProcessingService {
     }
 
     return this.model;
+  }
+
+  getColumnData(
+    columnName, includeTime = null, normalize = null, beginIndex = 0, length = 0, stride = 0) {
+      const numRows = this.data.length;
+
+      // this.logger.log('columnName:', columnName);
+
+      if (!beginIndex) {
+        beginIndex = 0;
+      }
+      if (!length) {
+        length = numRows - beginIndex;
+      }
+      if (!stride) {
+        stride = 1;
+      }
+      const out = [];
+      /* this.logger.log('beginIndex:', beginIndex);
+      this.logger.log('length:', length);
+      this.logger.log('stride:', stride); */ 
+      for (let i = beginIndex; i < beginIndex + length && i < numRows;
+          i += stride) {
+        let value = this.data[i][columnName];
+        if (includeTime) {
+          value = {x: this.dateTime[i].getTime(), y: value};
+        }
+        out.push(value);
+      }
+      // this.logger.log('out:', out);
+      return out;
+  }
+
+  /**
+   * Calculate the means and standard deviations of every column.
+   *
+   * TensorFlow.js is used for acceleration.
+   */
+  async calculateMeansAndStddevs_() {
+    tf.tidy(() => {
+        this.means = [];
+        this.stddevs = [];
+        
+        for (const columnName of this.columns) {
+          const data = tf.tensor1d(this.getColumnData(columnName).slice(0, 6 * 24 * 365));
+          // this.logger.log('tf.tensor1d data:', data);
+          const moments = tf.moments(data);
+          this.means.push(moments.mean.dataSync());
+          // this.logger.log('tf.moments:', moments);
+          this.stddevs.push(...moments.variance.dataSync().map((val) => Math.sqrt(val)));
+        }
+        this.logger.log('means:', this.means);
+        this.logger.log('stddevs:', this.stddevs);
+      });
+      const numRows = this.data.length;
+
+      // Cache normalized values.
+      this.normalizedData = [];
+      for (let i = 0; i < numRows; ++i) {
+        const row = [];
+        for (let j = 0; j < this.columns.length; ++j) {
+          const columnIndex = this.columns.indexOf(this.columns[j]);
+          const columnName = this.columns[j];
+          row.push((this.data[i][columnName] - this.means[columnIndex]) / this.stddevs[columnIndex]);
+        }
+        this.normalizedData.push(row);
+      }
+      // isDataLoaded.value = true;
+      this.logger.log('normalizedData:', this.normalizedData);
+  }
+
+  async loadData({ data }) {
+    this.columns = (data && Array.isArray(data) && data.length) ? Object.keys(data[0])
+        .filter((name) => !['id', 'date'].includes(name)) : [];
+    this.dateTime = [];
+    this.data = data;  // Unnormalized data.
+    // Day of the year data, normalized between 0 and 1.
+    this.normalizedDayOfYear = [];
+    // Time of the day, normalized between 0 and 1.
+    this.normalizedTimeOfDay = [];
+    
+    this.numRows = this.data.length;
+    this.numColumns = this.data[0].length;
+    this.numColumnsExcludingTarget = this.data[0].length - 1;
+
+    await this.calculateMeansAndStddevs_();
+
+    return this.normalizedData;
   }
 }

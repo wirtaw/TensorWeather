@@ -160,9 +160,6 @@
   import { useStore } from 'vuex';
   import * as tf from '@tensorflow/tfjs';
   import * as tfvis from '@tensorflow/tfjs-vis';
-
-  import { WeatherData } from '../helper/weatherData.ts';
-  // import { buildModel, trainModel } from '../helper/models.ts';
   
   export default {
     data() {
@@ -209,7 +206,6 @@
         logUpdateFreq: trainArguments.logUpdateFreq || 'batch'
       });
 
-      const tfn = ref(null);
       const forecastResult = ref(null);
       const isDataPrepared = ref(false);
       const isDataLoaded = ref(false);
@@ -219,7 +215,7 @@
       const lookBackMin = ref(10 * 24 * 6);
       const stepMax = ref(10);
       const stepMin = ref(1);
-      const weatherData = ref(new WeatherData());
+      const weatherData = ref(null);
       const on = inject('socketOn');
       const emit = inject('socketEmit');
 
@@ -265,18 +261,18 @@
       }
 
       async function loadData() {
-        if (weatherData?.value?.loadData) {
-          await weatherData.value.loadData(preparedData);
-        
-          isDataLoaded.value = true;
-        } else {
-          console.dir(weatherData, { depth: 2 });
-          console.log('weatherData:', weatherData.value);
-        }
+        if (preparedData && Array.isArray(preparedData) > 0) {
+          emit('forecast_prepare_data_load_request', { data: preparedData });
+        } 
       }
 
+      on('forecast_prepare_data_load_request_done', (data) => {
+        normalizedData.value = data;
+        isDataLoaded.value = true;
+      });
+
       async function runBuildAndTrainModel() {
-        let numFeatures = weatherData.value.columns.length;
+        let numFeatures = normalizedData.value[0].length;
         const { modelType, 
           lookBack, 
           step, 
@@ -314,7 +310,6 @@
       }
   
       return { 
-        tfn,
         forecastResult,
         predictionSettings,
         isDataPrepared,

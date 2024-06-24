@@ -194,4 +194,31 @@ export class EventsGateway
       });
     }
   }
+
+  @SubscribeMessage('forecast_prepare_data_load_request')
+  async handleForecastDataLoadRequest(
+    client: Server,
+    payload: any,
+  ): Promise<void> {
+    // this.logger.log(`Forecast build model`, payload);
+    try {
+      const {
+        data,
+      } = payload;
+      const reponse: any = await this.dataProcessingService.loadData(
+        {
+          data
+        },
+      );
+      client.emit('forecast_prepare_data_load_request_done', reponse);
+    } catch (e) {
+      this.logger.error(
+        `Forecast data load error `,
+        e?.message.toString() || '',
+      );
+      client.emit('forecast_prepare_data_load_request_failed', {
+        message: e?.message.toString() || '',
+      });
+    }
+  }
 }
