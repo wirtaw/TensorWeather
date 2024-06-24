@@ -265,10 +265,14 @@
       }
 
       async function loadData() {
-        await weatherData.value.loadData(preparedData);
+        if (weatherData?.value?.loadData) {
+          await weatherData.value.loadData(preparedData);
         
-        isDataLoaded.value = true;
-        // console.log('normalizedData:', normalizedData.value);
+          isDataLoaded.value = true;
+        } else {
+          console.dir(weatherData, { depth: 2 });
+          console.log('weatherData:', weatherData.value);
+        }
       }
 
       async function runBuildAndTrainModel() {

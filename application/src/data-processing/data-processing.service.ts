@@ -362,6 +362,7 @@ export class DataProcessingService {
       this.tfn = tfnNode;
     }
 
+    this.logger.log(` build model ${train.lookBack}`);
     this.model = this.buildModel(
       train.modelType,
       Math.floor(train.lookBack / train.step),

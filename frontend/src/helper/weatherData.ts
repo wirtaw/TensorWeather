@@ -85,11 +85,11 @@ export class WeatherData {
         
         for (const columnName of this.columns) {
           const data = tf.tensor1d(this.getColumnData(columnName).slice(0, 6 * 24 * 365));
-          // console.log('tf.tensor1d data:', data);
+          console.log('tf.tensor1d data:', data);
           const moments = tf.moments(data);
           this.means.push(moments.mean.dataSync());
           // console.log('tf.moments:', moments);
-          this.stddevs.push(Math.sqrt(moments.variance.dataSync()));
+          this.stddevs.push(...moments.variance.dataSync().map((val) => Math.sqrt(val)));
         }
         // console.log('means:', means.value);
         // console.log('stddevs:', stddevs.value);
